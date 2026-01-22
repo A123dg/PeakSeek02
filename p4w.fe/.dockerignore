@@ -1,0 +1,71 @@
+# -----------------------------
+# 👇 Cơ bản - loại bỏ hệ thống và IDE
+# -----------------------------
+.git
+.gitignore
+# .env
+.env.local
+# .env.development
+.env.test
+# .env.production
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+Thumbs.db
+
+# -----------------------------
+# 👇 Node & dependencies
+# -----------------------------
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# -----------------------------
+# 👇 Build & output
+# -----------------------------
+build
+dist
+coverage
+.cache
+out
+.tmp
+logs
+*.log
+
+# -----------------------------
+# 👇 Docker
+# -----------------------------
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# -----------------------------
+# 👇 Test files & configs
+# -----------------------------
+__tests__
+*.spec.js
+*.spec.ts
+*.test.js
+*.test.ts
+jest.config.js
+cypress/
+cypress.config.js
+
+# -----------------------------
+# 👇 Misc / Editor / OS trash
+# -----------------------------
+*.bak
+*.tmp
+*.old
+*.orig
+*.zip
+*.tar
+*.gz
+*.tgz
