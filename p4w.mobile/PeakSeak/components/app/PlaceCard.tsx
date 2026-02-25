@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette } from '@/components/app/palette';
 import { TagPill } from '@/components/app/TagPill';
@@ -12,6 +12,7 @@ type PlaceCardProps = {
   imageUrl: string;
   tags: string[];
   layout?: 'vertical' | 'horizontal';
+  onPressCard?: () => void;
 };
 
 export function PlaceCard({
@@ -22,11 +23,12 @@ export function PlaceCard({
   imageUrl,
   tags,
   layout = 'vertical',
+  onPressCard,
 }: PlaceCardProps) {
   const isHorizontal = layout === 'horizontal';
 
   return (
-    <View style={[styles.card, isHorizontal && styles.horizontalCard]}>
+    <Pressable style={[styles.card, isHorizontal && styles.horizontalCard]} onPress={onPressCard}>
       <Image source={{ uri: imageUrl }} style={[styles.image, isHorizontal && styles.imageSmall]} />
       <View style={styles.content}>
         <View style={styles.rowBetween}>
@@ -45,12 +47,13 @@ export function PlaceCard({
           ))}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    width: '100%',
     borderRadius: 18,
     backgroundColor: Palette.card,
     borderWidth: 1,
@@ -59,7 +62,7 @@ const styles = StyleSheet.create({
   },
   horizontalCard: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
   },
   image: {
     width: '100%',
@@ -67,7 +70,7 @@ const styles = StyleSheet.create({
   },
   imageSmall: {
     width: 110,
-    height: 110,
+    height: '100%',
   },
   content: {
     padding: 14,

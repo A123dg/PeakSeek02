@@ -1,11 +1,13 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View, Image, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { Palette } from '@/components/app/palette';
 import { PlaceCard } from '@/components/app/PlaceCard';
 import { SearchInput } from '@/components/app/SearchInput';
 import { SectionHeader } from '@/components/app/SectionHeader';
 import { StatCard } from '@/components/app/StatCard';
+import {  useRouter } from 'expo-router';
 
 const stats = [
   { label: 'Dia diem gan ban', value: '24' },
@@ -60,28 +62,47 @@ const nearbyPlaces = [
 ];
 
 export default function HomeScreen() {
+  const user = {
+    name: 'Vũ',
+    avatarUrl: 'https://i.pravatar.cc/150?img=12',
+  };
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.hero}>
-          <Text style={styles.greeting}>Xin chào, Minh</Text>
-          <Text style={styles.subGreeting}>Hôm nay bạn muốn học ở đâu?</Text>
+        {/* HERO ROW với greeting + avatar */}
+        <View style={styles.heroRow}>
+          <View style={styles.heroText}>
+            <Text style={styles.greeting}>Xin chào, {user.name}</Text>
+            <Text style={styles.subGreeting}>Hôm nay bạn muốn học ở đâu?</Text>
+          </View>
+
+          <Pressable
+            onPress={() => {
+router.push("/(tabs)/profile");
+            }}
+            style={styles.avatarBtn}
+            hitSlop={10}
+          >
+            {user.avatarUrl ? (
+              <Image source={{ uri: user.avatarUrl }} style={styles.avatarImg} />
+            ) : (
+              <Ionicons name="person" size={20} color={Palette.text} />
+            )}
+          </Pressable>
         </View>
 
         <SearchInput placeholder="Tìm kiếm quán cà phê, thư viện, coworking..." />
 
-        <View style={styles.statsRow}>
-          {stats.map((stat) => (
-            <StatCard key={stat.label} label={stat.label} value={stat.value} />
-          ))}
-        </View>
+        
 
         <View style={styles.section}>
-          <SectionHeader title="Nổi bật gần bạn" actionLabel="Xem tất cả" />
+          <SectionHeader title="Địa điểm nổi bật" actionLabel="Xem tất cả" onPressAction={()=> router.push('/(tabs)/explore')} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
             {featuredPlaces.map((place) => (
               <View key={place.title} style={styles.featuredItem}>
-                <PlaceCard {...place} />
+                <PlaceCard {...place} onPressCard={()=> router.push('/location/location-info/LocationInfo')}/>
               </View>
             ))}
           </ScrollView>
@@ -91,7 +112,7 @@ export default function HomeScreen() {
           <SectionHeader title="Gần đây" />
           <View style={styles.verticalList}>
             {nearbyPlaces.map((place) => (
-              <PlaceCard key={place.title} {...place} layout="horizontal" />
+              <PlaceCard key={place.title} {...place} layout="horizontal" onPressCard={() => router.push('/location/location-info/LocationInfo')} />
             ))}
           </View>
         </View>
@@ -99,6 +120,8 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+
+const AVATAR_SIZE = 40;
 
 const styles = StyleSheet.create({
   container: {
@@ -110,7 +133,14 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     gap: 18,
   },
-  hero: {
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  heroText: {
+    flex: 1,
     gap: 6,
   },
   greeting: {
@@ -121,6 +151,22 @@ const styles = StyleSheet.create({
   subGreeting: {
     fontSize: 14,
     color: Palette.subtext,
+  },
+  avatarBtn: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    backgroundColor: Palette.card,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImg: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
   },
   statsRow: {
     flexDirection: 'row',
