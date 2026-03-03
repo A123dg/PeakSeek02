@@ -1,0 +1,25 @@
+# Visual Studio cache
+.vs/
+
+# Visual Studio IDE cache for p4w folder
+p4w/.vs/
+
+# IDEs
+.idea/
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Node
+node_modules/
+dist/

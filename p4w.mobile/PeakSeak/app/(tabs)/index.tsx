@@ -8,56 +8,58 @@ import { SearchInput } from '@/components/app/SearchInput';
 import { SectionHeader } from '@/components/app/SectionHeader';
 import { StatCard } from '@/components/app/StatCard';
 import {  useRouter } from 'expo-router';
+import { TagPill } from '@/components/app/TagPill';
 
 const stats = [
-  { label: 'Dia diem gan ban', value: '24' },
-  { label: 'Quan yeu thich', value: '08' },
-  { label: 'Danh gia moi', value: '128' },
+  { label: 'Địa điểm gần bạn', value: '24' },
+  { label: 'Quán yêu thích', value: '08' },
+  { label: 'Đánh giá mới', value: '128' },
 ];
 
 const featuredPlaces = [
   {
     title: 'Lumen Workspace',
-    area: 'Quan 1, TP.HCM',
-    price: 'Tu 45.000d/gio',
+    area: 'Quán 1, TP.HCM',
+    price: 'Từ 45.000đ/giờ',
     rating: 4.8,
     imageUrl: 'https://picsum.photos/seed/peakseek1/600/400',
-    tags: ['Yen tinh', 'O cam', 'Wifi manh'],
+    tags: ['Yên tĩnh', 'Ở cầm', 'Wifi mạnh'],
   },
   {
     title: 'The Nest Cafe',
-    area: 'Quan 3, TP.HCM',
-    price: 'Tu 35.000d/ly',
+    area: 'Quán 3, TP.HCM',
+    price: 'Từ 35.000đ/lý',
     rating: 4.6,
     imageUrl: 'https://picsum.photos/seed/peakseek2/600/400',
-    tags: ['Ca phe', 'Co nhac nhe'],
+    tags: ['Cà phê', 'Có nhạc nhẹ'],
   },
   {
     title: 'Atlas Study Hub',
-    area: 'Binh Thanh, TP.HCM',
-    price: 'Tu 60.000d/gio',
+    area: 'Bình Thạnh, TP.HCM',
+    price: 'Từ 60.000đ/giờ',
     rating: 4.7,
     imageUrl: 'https://picsum.photos/seed/peakseek3/600/400',
-    tags: ['Yen tinh', 'Gio mo cua muon'],
+    tags: ['Yên tĩnh', 'Giờ mở cửa muộn'],
   },
 ];
+const categories = ['Tat ca', 'Coworking', 'Thu vien', 'Ca phe', 'Ngoai troi'];
 
 const nearbyPlaces = [
   {
     title: 'Mono Desk',
-    area: 'Quan 10, TP.HCM',
-    price: 'Tu 50.000d/gio',
+    area: 'Quán 10, TP.HCM',
+    price: 'Từ 50.000đ/giờ',
     rating: 4.5,
     imageUrl: 'https://picsum.photos/seed/peakseek4/600/400',
-    tags: ['Phong hop', 'May chieu'],
+    tags: ['Phòng họp', 'Máy chiếu'],
   },
   {
     title: 'Fika Corner',
-    area: 'Phu Nhuan, TP.HCM',
-    price: 'Tu 40.000d/ly',
+    area: 'Phú Nhuận, TP.HCM',
+    price: 'Từ 40.000đ/lý',
     rating: 4.4,
     imageUrl: 'https://picsum.photos/seed/peakseek5/600/400',
-    tags: ['Ca phe', 'Song dong'],
+    tags: ['Cà phê', 'Sôi động'],
   },
 ];
 
@@ -94,15 +96,22 @@ router.push("/(tabs)/profile");
         </View>
 
         <SearchInput placeholder="Tìm kiếm quán cà phê, thư viện, coworking..." />
-
+            <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.categoryRow}>
+                      {categories.map((category) => (
+                        <TagPill key={category} label={category} />
+                      ))}
+                    </ScrollView>
         
 
         <View style={styles.section}>
-          <SectionHeader title="Địa điểm nổi bật" actionLabel="Xem tất cả" onPressAction={()=> router.push('/(tabs)/explore')} />
+          <SectionHeader title="Địa điểm yêu thích" actionLabel="Xem tất cả" onPressAction={()=> router.push('/(tabs)/explore')} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
             {featuredPlaces.map((place) => (
               <View key={place.title} style={styles.featuredItem}>
-                <PlaceCard {...place} onPressCard={()=> router.push('/location/location-info/LocationInfo')}/>
+                <PlaceCard {...place} onPressCard={()=> router.push('/location/location-info')}/>
               </View>
             ))}
           </ScrollView>
@@ -112,7 +121,7 @@ router.push("/(tabs)/profile");
           <SectionHeader title="Gần đây" />
           <View style={styles.verticalList}>
             {nearbyPlaces.map((place) => (
-              <PlaceCard key={place.title} {...place} layout="horizontal" onPressCard={() => router.push('/location/location-info/LocationInfo')} />
+              <PlaceCard key={place.title} {...place} layout="horizontal" onPressCard={() => router.push('/location/location-info')} />
             ))}
           </View>
         </View>
@@ -151,6 +160,9 @@ const styles = StyleSheet.create({
   subGreeting: {
     fontSize: 14,
     color: Palette.subtext,
+  },
+   categoryRow: {
+    gap: 8,
   },
   avatarBtn: {
     width: AVATAR_SIZE,

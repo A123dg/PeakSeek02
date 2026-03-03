@@ -209,7 +209,7 @@ export const LocationReviewBottomSheet = React.forwardRef<
             ))}
           </View>
             <View style={styles.contentHeader}>
-              <Text style={styles.label}>Noi dung</Text>
+              <Text style={styles.label}>Nội dung</Text>
 
               <Pressable onPress={pickImages} style={styles.cameraBtn} hitSlop={10}>
   <Ionicons name="camera-outline" size={20} color={Palette.text} />

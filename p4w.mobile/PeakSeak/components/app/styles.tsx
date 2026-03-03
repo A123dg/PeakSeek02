@@ -1,0 +1,182 @@
+import { StyleSheet } from 'react-native';
+import { Palette } from '@/components/app/palette';
+
+export const stylesUI = StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: 'hidden',
+  },
+  handleTouchArea: {
+    width: '100%',
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  handle: {
+    width: 44,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#d1d5db',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  container: {
+    paddingHorizontal: 18,
+    paddingBottom: 24,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Palette.text,
+    textAlign: 'center',
+    marginBottom: 14,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Palette.text,
+    marginBottom: 8,
+  },
+  contentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  cameraBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cameraIcon: {
+    fontSize: 18,
+  },
+  starRow: {
+    flexDirection: 'row',
+    marginBottom: 14,
+  },
+  starPress: {
+    marginRight: 6,
+  },
+  star: {
+    fontSize: 26,
+    color: '#d1d5db',
+  },
+  starActive: {
+    color: Palette.warning,
+  },
+  input: {
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    padding: 12,
+    fontSize: 14,
+    color: Palette.text,
+  },
+  previewWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 10,
+  },
+  previewItem: {
+    width: 72,
+    height: 72,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: '#fff',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  removeBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: -2,
+  },
+  errorText: {
+    marginTop: 6,
+    color: '#dc2626',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 14,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Palette.text,
+  },
+  submitBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Palette.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitBtnDisabled: {
+    opacity: 0.6,
+  },
+  submitText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  statusText: {
+    marginTop: 8,
+    textAlign: 'center',
+    fontSize: 12,
+    color: Palette.subtext,
+  },
+  successText: {
+    marginTop: 8,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '700',
+    color: Palette.success,
+  },
+});

@@ -12,7 +12,7 @@ type LocationReviewProps = {
   onSubmitPress?: (payload: LocationReviewPayload) => void | Promise<void>;
 };
 
-const MIN_CONTENT_LENGTH = 20;
+const MIN_CONTENT_LENGTH = 5;
 
 export const LocationReview = ({ onCancelPress, onSubmitPress }: LocationReviewProps) => {
   const [rating, setRating] = useState(0);
@@ -43,9 +43,9 @@ export const LocationReview = ({ onCancelPress, onSubmitPress }: LocationReviewP
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Viet danh gia</Text>
+        <Text style={styles.headerTitle}>Viết đánh giá</Text>
         <Pressable onPress={onCancelPress}>
-          <Text style={styles.headerAction}>Dong</Text>
+          <Text style={styles.headerAction}>Đóng</Text>
         </Pressable>
       </View>
 
@@ -56,7 +56,7 @@ export const LocationReview = ({ onCancelPress, onSubmitPress }: LocationReviewP
         keyboardShouldPersistTaps="handled"
       >
         <Pressable onPress={Keyboard.dismiss}>
-          <Text style={styles.label}>Chon so sao</Text>
+          <Text style={styles.label}>Chọn số sao</Text>
         </Pressable>
 
         <View style={styles.starRow}>
@@ -67,24 +67,24 @@ export const LocationReview = ({ onCancelPress, onSubmitPress }: LocationReviewP
           ))}
         </View>
 
-        <Text style={styles.label}>Noi dung danh gia</Text>
+        <Text style={styles.label}>Nội dung đánh giá</Text>
         <TextInput
           style={styles.input}
           multiline
           value={content}
           onChangeText={setContent}
-          placeholder="Chia se trai nghiem chi tiet de giup nguoi khac chon noi phu hop."
+          placeholder="Chia sẻ trải nghiệm chi tiết để giúp người khác chọn nơi phù hợp."
           placeholderTextColor={Palette.subtext}
           textAlignVertical="top"
         />
 
         {showError && contentLength < MIN_CONTENT_LENGTH ? (
-          <Text style={styles.errorText}>Vui long nhap it nhat 20 ky tu.</Text>
+          <Text style={styles.errorText}>Vui lòng nhập ít nhất 5 ký tự.</Text>
         ) : null}
 
         <View style={styles.buttonRow}>
           <Pressable style={styles.cancelBtn} onPress={onCancelPress}>
-            <Text style={styles.cancelText}>Huy</Text>
+            <Text style={styles.cancelText}>Hủy</Text>
           </Pressable>
 
           <Pressable
@@ -92,17 +92,17 @@ export const LocationReview = ({ onCancelPress, onSubmitPress }: LocationReviewP
             disabled={!canSubmit}
             onPress={handleSubmit}
           >
-            <Text style={styles.submitText}>Gui danh gia</Text>
+            <Text style={styles.submitText}>Gửi đánh giá</Text>
           </Pressable>
         </View>
 
-        {isSubmitting ? <Text style={styles.statusText}>Dang gui...</Text> : null}
+        {/* {isSubmitting ? <Text style={styles.statusText}>Đang gửi...</Text> : null}
 
         {isSubmitted ? (
           <View style={styles.successBox}>
-            <Text style={styles.successText}>Da gui danh gia thanh cong!</Text>
+            <Text style={styles.successText}>Đã gửi đánh giá thành công!</Text>
           </View>
-        ) : null}
+        ) : null} */}
       </ScrollView>
     </View>
   );

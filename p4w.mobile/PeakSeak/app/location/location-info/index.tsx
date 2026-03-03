@@ -13,24 +13,24 @@ import {
 const reviews = [
   {
     id: '1',
-    title: 'Lan Anh 2 - truyen trade',
+    title: 'Lan Anh 2 - truyền trade',
     stars: 5,
-    time: '1 gio truoc',
-    text: 'Khong gian yen tinh, wifi on dinh, ve sinh tot.',
+    time: '1 giờ trước',
+    text: 'Không gian yên tĩnh, wifi ổn định, vệ sinh tốt.',
   },
   {
     id: '2',
-    title: 'Minh Tri 1 tieu thuoc',
+    title: 'Minh Trí 1 tiểu thuốc',
     stars: 4,
-    time: '3 ngay truoc',
-    text: 'Vi tri de tim, cho ngoi thoai mai, phuc vu nhanh.',
+    time: '3 ngày trước',
+    text: 'Vị trí dễ tìm, chỗ ngồi thoải mái, phục vụ nhanh.',
   },
   {
     id: '3',
-    title: 'Ngoc Vy 6 - truyen thuoc',
+    title: 'Ngọc Vỹ 6 - truyền thuốc',
     stars: 3,
-    time: '5 ngay truoc',
-    text: 'Khong gian on, gio cao diem hoi dong mot chut.',
+    time: '5 ngày trước',
+    text: 'Không gian ổn, giờ cao điểm hơi đông một chút.',
   },
 ];
 
@@ -84,13 +84,13 @@ export const LocationInfo = () => {
           <View style={styles.titleRow}>
             <Text style={[styles.title, { fontSize: titleSize }]}>WorkHub District 1</Text>
             <View style={styles.hoursBadge}>
-              <Text style={styles.hoursText}>Mo 08:00 - Dong 22:00</Text>
+              <Text style={styles.hoursText}>Mở 08:00 - Đóng 22:00</Text>
             </View>
           </View>
           <Text style={[styles.category, { fontSize: textSize - 1 }]}>Coworking</Text>
           <Text style={[styles.meta, { fontSize: textSize - 1 }]}>12 Le Loi, Q1, TP.HCM</Text>
           <Text style={[styles.desc, { fontSize: textSize, lineHeight: textSize * 1.45 }]}>
-            Khong gian yen tinh, internet on dinh, nhieu cho ngoi, ban ghe thoai mai cho hoc tap va lam viec nhom.
+            Không gian yên tĩnh, internet ổn định, nhiều chỗ ngồi, bàn ghế thoải mái cho học tập và làm việc nhóm.
           </Text>
 
           <View style={styles.ratingCard}>
@@ -101,20 +101,20 @@ export const LocationInfo = () => {
                   <MaterialIcons key={idx} name="star" size={16} color="#f5a146" />
                 ))}
               </View>
-              <Text style={styles.ratingMeta}>320 danh gia - cap nhat lan cuoi 18:00 - 22:00</Text>
+              <Text style={styles.ratingMeta}>320 đánh giá - cập nhật lần cuối 18:00 - 22:00</Text>
             </View>
           </View>
 
           <View style={styles.reviewHeader}>
-            <Text style={styles.reviewTitle}>Danh gia</Text>
+            <Text style={styles.reviewTitle}>Đánh giá</Text>
             <Pressable onPress={openReviewSheet}>
-              <Text style={styles.verify}>Viet danh gia</Text>
+              <Text style={styles.verify}>Viết đánh giá</Text>
             </Pressable>
           </View>
 
           <View style={styles.reviewList}>
             {reviews.map((review) => (
-              <View key={review.id} style={styles.reviewCard}>
+              <Pressable key={review.id} style={styles.reviewCard} onPress={() => router.push('/location/location-info/comment')}>
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>{review.title[0]}</Text>
                 </View>
@@ -130,10 +130,12 @@ export const LocationInfo = () => {
                   </View>
                   <Text style={styles.reviewText}>{review.text}</Text>
                 </View>
-              </View>
+              </Pressable>
             ))}
           </View>
-          <Text style={styles.footer}>Xem tat ca</Text>
+          <Pressable onPress={() => router.push('/location/location-info/comment')}>
+            {/* <Text style={styles.footer}>Xem tất cả</Text> */}
+          </Pressable>
         </ScrollView>
       </SafeAreaView>
 

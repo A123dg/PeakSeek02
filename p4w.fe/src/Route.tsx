@@ -1,15 +1,11 @@
-import {
-  Outlet,
-  createRootRoute,
-  createRouter,
-  redirect
-} from '@tanstack/react-router'
-import NotFound404 from '@shared/components/404'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import { createRootRoute, createRouter, redirect } from '@tanstack/react-router';
+import NotFound404 from '@shared/components/404';
+import RootComponent from './RootComponent';
 //route
 import dashboardRoute from '@apps/dashboard/Route';
 import authdRoute from '@apps/auth/Route';
 import userRoute from '@apps/user/Route';
+import adminRoute from '@apps/admin/Route';
 //constant
 import { LOGIN_ROUTE } from '@/constants';
 import tokenManager from '@utils/tokenManager';
@@ -17,11 +13,9 @@ import tokenManager from '@utils/tokenManager';
 export const rootRoute = createRootRoute({
   component: RootComponent,
   notFoundComponent: NotFound404,
-  // Hook chạy trước khi load bất kỳ route con nào
   beforeLoad: async ({ location }) => {
     const accessToken = tokenManager.getAccessToken();
     const loggedIn = !!accessToken
-    // Nếu chưa đăng nhập và không đang ở trang login
     if (!loggedIn && !location.pathname.startsWith(LOGIN_ROUTE)) {
       throw redirect({
         to: LOGIN_ROUTE,
@@ -33,22 +27,13 @@ export const rootRoute = createRootRoute({
   },
 })
 
-function RootComponent() {
-  return (
-    <>
-      <Outlet />
-      <TanStackRouterDevtools position="bottom-right" />
-    </>
-  )
-}
-
 export const routeTree = rootRoute.addChildren([
   dashboardRoute,
   authdRoute,
-  userRoute
+  userRoute,
+  adminRoute,
 ])
 
-// Set up a Router instance
 const router = createRouter({
   routeTree,
   defaultPreload: 'intent',

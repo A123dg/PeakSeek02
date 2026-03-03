@@ -1,27 +1,14 @@
-import Nav from "@/shared/components/nav";
-import { Button } from "antd";
-import useCheckLogin from "@/shared/hooks/useCheckLogin";
-import useHandleLogOut from "@apps/dashboard/hooks/useHandleLogOut";
+import { useEffect } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { ADMIN_REVIEWS_ROUTE } from '@apps/admin/constants';
 
-const Dashboard = () => {
-  const { isLogin } = useCheckLogin();
-  const { handleLogOut } = useHandleLogOut();
+export default function Dashboard() {
+  const navigate = useNavigate();
 
-  return ( 
-    <>
-      <Nav />
-      <div className="p-2">
-        <h3>Welcome Dashboard!</h3>
+  useEffect(() => {
+    navigate({ to: ADMIN_REVIEWS_ROUTE, replace: true });
+  }, [navigate]);
 
-        <div style={{marginTop: 100}}/>
-        {
-          isLogin &&
-          <Button onClick={handleLogOut}>Log Out</Button>
-        }
-
-      </div>
-    </>
-  )
+  return null;
 }
 
-export default Dashboard;

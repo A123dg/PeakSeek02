@@ -28,7 +28,11 @@ export default function RootLayout() {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="location/location-info/LocationInfo"
+              name="location/location-info"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="location/location-info/comment"
               options={{ headerShown: false }}
             />
             {/* <Stack.Screen
