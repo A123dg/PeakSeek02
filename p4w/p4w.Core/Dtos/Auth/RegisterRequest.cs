@@ -8,4 +8,6 @@ public class RegisterRequest {
     public string UserName { get; set; } = null!;
         
     public DateTime? DateOfBirth { get; set; }= DateTime.UtcNow;
+
+    public string? MediaLinkUrl { get; set; } = null!;
 }   

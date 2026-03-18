@@ -2,6 +2,7 @@ using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 using p4w.Api.Dtos.Auth;
 using p4w.Core.Interfaces.Repositories.Auth;
+using p4w.Core.Interfaces.Repositories.MediaRepo;
 using p4w.Core.Interfaces.Services.Auth;
 using p4w.Core.Models;
 using p4w.Core.Paginations;
@@ -15,11 +16,14 @@ public class AuthService : IAuthService
     private readonly IConfiguration _configuration;
     private readonly IJwtService _jwtService;
 
-    public AuthService(IUserRepository userRepository, IConfiguration configuration, IJwtService jwtService)
+    private readonly IMediaRepository _mediaRepository;
+
+    public AuthService(IUserRepository userRepository, IConfiguration configuration, IJwtService jwtService, IMediaRepository mediaRepository)
     {
         _userRepository = userRepository;
         _configuration = configuration;
         _jwtService = jwtService;
+        _mediaRepository = mediaRepository;
     }
 
     public async Task<ApiResponse<LoginResponse>> LoginAsync(string email, string password)
@@ -73,19 +77,43 @@ public class AuthService : IAuthService
         var exists = await _userRepository.ExistsByEmailAsync(request.Email);
         if (exists)
             throw new Exception("Email already in use");
-
+        var userId = Guid.NewGuid();
         var newUser = new User
         {
-            Id = Guid.NewGuid(),
+            Id = userId,
             Email = request.Email,
             UserName = request.UserName,
             DateOfBirth = request.DateOfBirth,
             // Password = PasswordHelper.HashPassword(request.Password),
             CreatedAt = DateTime.UtcNow,
             Status = 1,
-            RoleId = Guid.Parse("F8D2EE70-5C68-4390-A18E-11943A86142A")
+            RoleId = Guid.Parse("F8D2EE70-5C68-4390-A18E-11943A86142A"),
+        };
+        if (!string.IsNullOrEmpty(request.MediaLinkUrl))
+    {
+        var media = new Media
+        {
+            Id        = Guid.NewGuid(),
+            Url       = request.MediaLinkUrl,
+            MimeType  = "image/jpeg",
+            Size      = 0,
+            Status    = 1,
+            CreatedAt = DateTime.UtcNow
         };
 
+        var mediaLink = new MediaLink
+        {
+            Id         = Guid.NewGuid(),
+            UserId     = userId,
+            EntityType = "avatar",
+            EntityId   = userId,
+            MediaType  = "image",
+            SortOrder  = 0,
+            MediaId    = media.Id,
+            Media      = media
+        };
+        newUser.MediaLinks.Add(mediaLink);
+    }
         await _userRepository.AddAsync(newUser);
 
         return new ApiResponse<bool> { Success = true, Data = true };

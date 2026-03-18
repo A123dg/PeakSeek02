@@ -53,6 +53,22 @@ namespace p4w.Core.Interfaces.Services.Auth
             });
         }
 
+        public async Task<UserDto> GetUserProfileAsync(Guid userId)
+        {
+            User user = await _userRepository.GetUserByIdAsync(userId);
+            return new UserDto
+            {
+                Email = user.Email,
+                UserName = user.UserName,
+                DateOfBirth = user.DateOfBirth,
+                mediaLinkUrl = user.MediaLinks
+            .Where(m => m.EntityType == "avatar")   
+            .OrderBy(m => m.SortOrder)
+            .Select(m => m.Media.Url)
+            .FirstOrDefault() ?? ""
+            };
+        }
+
         public async Task CreateUserAsync(UserDto userCreateDto)
         {
             User user = await _userRepository.GetUserByEmailAsync(userCreateDto.Email);

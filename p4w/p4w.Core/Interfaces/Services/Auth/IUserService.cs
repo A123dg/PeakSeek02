@@ -7,5 +7,7 @@ namespace p4w.Core.Interfaces.Services.Auth
         Task CreateUserAsync(UserDto userCreateDto);
         Task UpdateUserAsync(Guid userId, UserDto userUpdateDto);
         Task DeleteUserAsync(Guid userId);
+
+        Task<UserDto> GetUserProfileAsync(Guid userId);
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using p4w.Api.Configurations;
 using p4w.Api.Handlers;
+using p4w.Core.Settings;
 using System.Text;
 
 LoadDotEnv(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
@@ -35,6 +36,14 @@ builder.Services
             ClockSkew = TimeSpan.Zero
         };
     });
+    builder.Services.Configure<CloudinarySetting>(options =>
+{
+    options.CloudName = Environment.GetEnvironmentVariable("CLOUDINARY_CLOUD_NAME")!;
+    options.ApiKey    = Environment.GetEnvironmentVariable("CLOUDINARY_API_KEY")!;
+    options.ApiSecret = Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET")!;
+});
+
+
 
 builder.Services.AddAuthorization();
 
