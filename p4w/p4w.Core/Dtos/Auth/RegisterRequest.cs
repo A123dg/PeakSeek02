@@ -6,5 +6,6 @@ public class RegisterRequest {
     public string Email { get; set; } = null!;
     [Required]
     public string UserName { get; set; } = null!;
-    public string DateOfBirth { get; set; } = null!;
+        
+    public DateTime? DateOfBirth { get; set; }= DateTime.UtcNow;
 }   

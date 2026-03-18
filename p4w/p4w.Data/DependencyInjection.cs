@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using p4w.Core.Interfaces.Repositories.Auth;
+using p4w.Core.Interfaces.Repositories.MediaRepo;
 using p4w.Data.Persistence;
 
 namespace p4w.Data;
@@ -15,6 +16,7 @@ public static class DependencyInjection
 
         services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
         services.AddScoped<IUserRepository,UserRepository>();
+        services.AddScoped<IMediaRepository, MediaRepository>();
         // services.AddSingleton<ITaskRepository, InMemoryTaskRepository>();
         // services.AddScoped<ITaskRepository, InMemoryTaskRepository>();
 

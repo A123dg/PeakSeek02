@@ -84,11 +84,10 @@ public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         ValidIssuer = _configuration["Jwt:Issuer"],
         ValidateAudience = true,
         ValidAudience = _configuration["Jwt:Audience"],
-        ValidateLifetime = false, // ❗ QUAN TRỌNG
+        ValidateLifetime = false,
         ClockSkew = TimeSpan.Zero
     }, out var securityToken);
 
-    // Optional: check đúng JWT
     if (securityToken is not JwtSecurityToken jwt ||
         !jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
     {

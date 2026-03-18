@@ -18,9 +18,9 @@ public class UserRepository : IUserRepository {
     }
     public async Task<User> GetUserByGoogleUserIdAsync(string googleUserId) {
         User? user = await _context.Users.FirstOrDefaultAsync(u => u.GoogleUserId == googleUserId);
-        if (user == null) {
-            throw new AppException("User not found", ErrorCodes.NotFound, StatusCodes.Status404NotFound);
-        }
+        // if (user == null) {
+        //     throw new AppException("User not found", ErrorCodes.NotFound, StatusCodes.Status404NotFound);
+        // }
         return user;
     }
     public async Task UpdateAsync(User user) {
@@ -29,9 +29,9 @@ public class UserRepository : IUserRepository {
     }
     public async Task<User> GetUserByEmailAsync(string email) {
         User? user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (user == null) {
-            throw new AppException("User not found", ErrorCodes.NotFound, StatusCodes.Status404NotFound);
-        }
+        // if (user == null) {
+        //     throw new AppException("User not found", ErrorCodes.NotFound, StatusCodes.Status404NotFound);
+        // }
         return user;
     }
     public async Task<User> GetUserByIdAsync(Guid id) {

@@ -18,8 +18,11 @@ namespace p4w.Core.Models
         public string UserName { get; set; } = null!;
         public string Email { get; set; } = null!;
         public DateTime? DateOfBirth { get; set; }
-        public string Password { get; set; } = null!;
+        public string? Password { get; set; } = null!;
         public int Status { get; set; }
+        public strin RefreshToken { get; set; } = null!;
+
+        public DateTime? RefreshTokenExpiryTime { get; set; } 
         public DateTime CreatedAt { get; set; }
 
         public virtual Role Role { get; set; } = null!;

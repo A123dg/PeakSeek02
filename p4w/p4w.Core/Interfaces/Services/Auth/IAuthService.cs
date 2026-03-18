@@ -7,4 +7,6 @@ public interface IAuthService {
     Task<ApiResponse<LoginResponse>> LoginAsync(string email, string password);
     Task<ApiResponse<LoginResponse>> LoginWithGoogleAsync(string idToken);
     Task<ApiResponse<bool>> RegisterAsync(RegisterRequest request);
+
+    Task<ApiResponse<bool>> LogoutAsync(Guid userId);
 }
