@@ -20,7 +20,7 @@ namespace p4w.Core.Models
         public DateTime? DateOfBirth { get; set; }
         public string? Password { get; set; } = null!;
         public int Status { get; set; }
-        public strin RefreshToken { get; set; } = null!;
+        public string RefreshToken { get; set; } = null!;
 
         public DateTime? RefreshTokenExpiryTime { get; set; } 
         public DateTime CreatedAt { get; set; }
