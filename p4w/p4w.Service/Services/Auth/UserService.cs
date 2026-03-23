@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Configuration;
+using p4w.Core.Constants.Statuses;
+using p4w.Core.Dtos.User;
 using p4w.Core.Interfaces.Repositories.Auth;
 using p4w.Core.Interfaces.Repositories.MediaRepo;
 using p4w.Core.Models;
@@ -53,20 +55,118 @@ namespace p4w.Core.Interfaces.Services.Auth
             });
         }
 
-        public async Task<UserDto> GetUserProfileAsync(Guid userId)
+        public async Task<UserProfileDto> GetUserProfileAsync(Guid userId)
         {
             User user = await _userRepository.GetUserByIdAsync(userId);
-            return new UserDto
+            RecentLocationDto? recentLocation = await _userRepository.GetRecentLocationByUserIdAsync(userId);
+
+            return new UserProfileDto
             {
                 Email = user.Email,
                 UserName = user.UserName,
                 DateOfBirth = user.DateOfBirth,
-                mediaLinkUrl = user.MediaLinks
+                MediaLinkUrl = user.MediaLinks
             .Where(m => m.EntityType == "avatar")   
             .OrderBy(m => m.SortOrder)
             .Select(m => m.Media.Url)
-            .FirstOrDefault() ?? ""
+            .FirstOrDefault() ?? "",
+                RecentLocation = recentLocation
             };
+        }
+
+        public async Task<RecentLocationDto?> GetRecentLocationAsync(Guid userId)
+        {
+            return await _userRepository.GetRecentLocationByUserIdAsync(userId);
+        }
+
+        public async Task<List<AdminUserDto>> GetUsersAsync(string? search, Guid? roleId, int? status)
+        {
+            return await _userRepository.GetUsersAsync(search, roleId, status);
+        }
+
+        public async Task<AdminUserDto> CreateAdminUserAsync(AdminUpsertUserRequest request)
+        {
+            var exists = await _userRepository.ExistsByEmailAsync(request.Email);
+            if (exists)
+            {
+                throw new Exception("Email already in use");
+            }
+
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = request.Email,
+                UserName = request.UserName,
+                DateOfBirth = request.DateOfBirth,
+                CreatedAt = DateTime.UtcNow,
+                Status = request.Status,
+                RoleId = request.RoleId
+            };
+
+            if (!string.IsNullOrWhiteSpace(request.MediaLinkUrl))
+            {
+                var media = new Media
+                {
+                    Id = Guid.NewGuid(),
+                    Url = request.MediaLinkUrl,
+                    MimeType = "image/jpeg",
+                    Size = 0,
+                    Status = UserStatuses.Active,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                user.MediaLinks.Add(new MediaLink
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    EntityType = "avatar",
+                    EntityId = user.Id,
+                    MediaType = "image",
+                    SortOrder = 0,
+                    MediaId = media.Id,
+                    Media = media
+                });
+            }
+
+            await _userRepository.AddAsync(user);
+            return (await _userRepository.GetUsersAsync(user.Email, null, null)).First(x => x.Id == user.Id);
+        }
+
+        public async Task<AdminUserDto> UpdateAdminUserAsync(Guid userId, AdminUpsertUserRequest request)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            var exists = await _userRepository.ExistsByEmailAsync(request.Email, userId);
+            if (exists)
+            {
+                throw new Exception("Email already in use");
+            }
+
+            user.Email = request.Email;
+            user.UserName = request.UserName;
+            user.DateOfBirth = request.DateOfBirth;
+            user.RoleId = request.RoleId;
+            user.Status = request.Status;
+
+            if (!string.IsNullOrWhiteSpace(request.MediaLinkUrl))
+            {
+                var existingAvatarLink = user.MediaLinks.FirstOrDefault(m => m.EntityType == "avatar");
+                if (existingAvatarLink != null)
+                {
+                    existingAvatarLink.Media.Url = request.MediaLinkUrl;
+                    await _mediaRepository.UpdateAsync(existingAvatarLink.Media);
+                }
+            }
+
+            await _userRepository.UpdateAsync(user);
+            return (await _userRepository.GetUsersAsync(user.Email, null, null)).First(x => x.Id == user.Id);
+        }
+
+        public async Task<AdminUserDto> LockUserAsync(Guid userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            user.Status = UserStatuses.Locked;
+            await _userRepository.UpdateAsync(user);
+            return (await _userRepository.GetUsersAsync(user.Email, null, null)).First(x => x.Id == user.Id);
         }
 
         public async Task CreateUserAsync(UserDto userCreateDto)
@@ -82,7 +182,7 @@ namespace p4w.Core.Interfaces.Services.Auth
                 UserName = userCreateDto.UserName,
                 DateOfBirth = userCreateDto.DateOfBirth,
                 CreatedAt = DateTime.UtcNow,
-                Status = 1,
+                Status = UserStatuses.Active,
                 RoleId = Guid.Parse("8ACEA62A-E03E-47B9-89E5-9E4320085D7D")
             };
              await _userRepository.AddAsync(createUser);
@@ -118,7 +218,7 @@ namespace p4w.Core.Interfaces.Services.Auth
                 Url = userUpdateDto.mediaLinkUrl,
                 MimeType = "image/jpeg",
                 Size = 0,
-                Status = 1,
+                Status = UserStatuses.Active,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -141,9 +241,11 @@ namespace p4w.Core.Interfaces.Services.Auth
 
         }
 
-        public Task DeleteUserAsync(Guid userId)
+        public async Task DeleteUserAsync(Guid userId)
         {
-            throw new NotImplementedException();
+            User user = await _userRepository.GetUserByIdAsync(userId);
+            user.Status = UserStatuses.Inactive;
+            await _userRepository.UpdateAsync(user);
         }
     }
 }

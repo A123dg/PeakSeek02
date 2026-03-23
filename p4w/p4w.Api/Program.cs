@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using p4w.Api.Configurations;
 using p4w.Api.Handlers;
+using p4w.Core.Constants;
 using p4w.Core.Settings;
 using System.Text;
 
@@ -33,7 +34,8 @@ builder.Services
             ValidateAudience = true,
             ValidAudience = jwtAudience,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
+            RoleClaimType = System.Security.Claims.ClaimTypes.Role
         };
     });
     builder.Services.Configure<CloudinarySetting>(options =>
@@ -45,7 +47,13 @@ builder.Services
 
 
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AuthPolicies.AdminOnly, policy =>
+    {
+        policy.RequireRole(RoleNames.Admin);
+    });
+});
 
 var app = builder.Build();
 

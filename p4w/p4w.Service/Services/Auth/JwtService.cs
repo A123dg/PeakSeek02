@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using p4w.Core.Constants;
 using p4w.Core.Interfaces.Services.Auth;
 using p4w.Core.Models;
 
@@ -20,6 +21,9 @@ public class JwtService : IJwtService {
         var claims = new[] {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Role, user.Role?.Name ?? string.Empty),
+            new Claim("role", user.Role?.Name ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 

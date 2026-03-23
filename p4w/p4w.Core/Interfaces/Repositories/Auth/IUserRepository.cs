@@ -1,3 +1,4 @@
+using p4w.Core.Dtos.User;
 using p4w.Core.Models;
 
 namespace p4w.Core.Interfaces.Repositories.Auth;
@@ -9,4 +10,7 @@ public interface IUserRepository {
 
     Task<User> GetUserByIdAsync(Guid id);
     Task<User> GetUserByEmailAsync(string email);
+    Task<RecentLocationDto?> GetRecentLocationByUserIdAsync(Guid userId);
+    Task<List<AdminUserDto>> GetUsersAsync(string? search, Guid? roleId, int? status);
+    Task<bool> ExistsByEmailAsync(string email, Guid excludeUserId);
 }

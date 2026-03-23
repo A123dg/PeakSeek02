@@ -1,5 +1,6 @@
 using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
+using p4w.Core.Constants.Statuses;
 using p4w.Api.Dtos.Auth;
 using p4w.Core.Interfaces.Repositories.Auth;
 using p4w.Core.Interfaces.Repositories.MediaRepo;
@@ -29,12 +30,23 @@ public class AuthService : IAuthService
     public async Task<ApiResponse<LoginResponse>> LoginAsync(string email, string password)
     {
         User user = await _userRepository.GetUserByEmailAsync(email);
-        if (user == null || !PasswordHelper.VerifyPassword(password, user.Password))
+        if (user == null || user.Status == UserStatuses.Inactive || !PasswordHelper.VerifyPassword(password, user.Password))
         {
             return new ApiResponse<LoginResponse>
             {
                 Success = false,
                 Message = "Invalid email or password",
+                Data = null,
+                MetaData = null
+            };
+        }
+
+        if (user.Status == UserStatuses.Locked)
+        {
+            return new ApiResponse<LoginResponse>
+            {
+                Success = false,
+                Message = "User is locked",
                 Data = null,
                 MetaData = null
             };
@@ -50,6 +62,17 @@ public class AuthService : IAuthService
         var name = payload.Name;
 
         User user = await _userRepository.GetUserByGoogleUserIdAsync(payload.Subject);
+        if (user != null && user.Status == UserStatuses.Locked)
+        {
+            return new ApiResponse<LoginResponse>
+            {
+                Success = false,
+                Message = "User is locked",
+                Data = null,
+                MetaData = null
+            };
+        }
+
         if (user == null)
         {
             user = new User
@@ -59,7 +82,7 @@ public class AuthService : IAuthService
                 UserName = name,
                 GoogleUserId = payload.Subject,
                 CreatedAt = DateTime.UtcNow,
-                Status = 1,
+                Status = UserStatuses.Active,
                 RoleId = Guid.Parse("F8D2EE70-5C68-4390-A18E-11943A86142A")
             };
             await _userRepository.AddAsync(user);
@@ -86,7 +109,7 @@ public class AuthService : IAuthService
             DateOfBirth = request.DateOfBirth,
             // Password = PasswordHelper.HashPassword(request.Password),
             CreatedAt = DateTime.UtcNow,
-            Status = 1,
+            Status = UserStatuses.Active,
             RoleId = Guid.Parse("F8D2EE70-5C68-4390-A18E-11943A86142A"),
         };
         if (!string.IsNullOrEmpty(request.MediaLinkUrl))
@@ -97,7 +120,7 @@ public class AuthService : IAuthService
             Url       = request.MediaLinkUrl,
             MimeType  = "image/jpeg",
             Size      = 0,
-            Status    = 1,
+            Status    = UserStatuses.Active,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -138,6 +161,7 @@ public class AuthService : IAuthService
 
     private async Task<ApiResponse<LoginResponse>> BuildLoginResponseAsync(User user)
     {
+        user = await _userRepository.GetUserByIdAsync(user.Id);
         var accessToken = _jwtService.GenerateToken(user);
         var refreshToken = _jwtService.GenerateRefreshToken(user);
         var refreshTokenExpiry = DateTime.UtcNow.AddDays(3);
