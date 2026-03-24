@@ -15,8 +15,8 @@ export const useHandleLogin = () => {
     });
   }
   /** lưu token và refresh token vào local storage */
-  const handleSaveToken = (token: string, refreshToken: string) => {
-    tokenManager.setAccessToken(token);
+  const handleSaveToken = (accessToken: string, refreshToken: string) => {
+    tokenManager.setAccessToken(accessToken);
     tokenManager.setRefreshToken(refreshToken);
   }
   
@@ -27,7 +27,7 @@ export const useHandleLogin = () => {
           handleShowError(response.message);
           return
         }
-        handleSaveToken(response?.data?.token, response?.data?.refreshToken);
+        handleSaveToken(response?.data?.accessToken, response?.data?.refreshToken);
         handleRedirect();
       },
       onError: (error) => {

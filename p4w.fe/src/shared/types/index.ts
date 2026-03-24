@@ -15,3 +15,10 @@ export interface IIconProps {
   color?: string;
   style?: object;
 }
+
+export interface IBaseFilter {
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  orderBy?: 1 | -1;
+}

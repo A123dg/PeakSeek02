@@ -32,6 +32,17 @@ public class UserRepository : IUserRepository {
         // }
         return user;
     }
+    public async Task<User> GetUserByUserNameAsync(string userName) {
+        User? user = await _context.Users
+            .Include(u => u.Role)
+            .Include(u => u.MediaLinks)
+            .ThenInclude(m => m.Media)
+            .FirstOrDefaultAsync(u => u.UserName == userName && u.Status != UserStatuses.Inactive);
+        // if (user == null) {
+        //     throw new AppException("User not found", ErrorCodes.NotFound, StatusCodes.Status404NotFound);
+        // }
+        return user;
+    }
     public async Task UpdateAsync(User user) {
         _context.Users.Update(user);
         await _context.SaveChangesAsync();

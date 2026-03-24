@@ -13,21 +13,40 @@ const antdDefaultConfig: ConfigProviderProps = {
       fontSize: 16,
       fontSizeLG: 16,
       fontFamily: 'Roboto, sans-serif',
-      colorPrimary: '#178FE2',
-      colorHighlight: '#178FE2',
+      colorPrimary: '#8c80cc',
+      colorHighlight: '#8c80cc',
       colorBorder: '#bcbebe',
       colorText: '#202426',
       colorBgContainerDisabled: '#E7E7E7',
       borderRadius: 4,
     },
     components: {
+      Button: {
+        borderRadius: 4,
+        primaryShadow: 'none',
+      },
       Input: {
         colorTextDisabled: '#636767',
         colorBgContainerDisabled: '#e7e7e7',
+        borderRadius: 4,
+        activeBorderColor: '#8c80cc',
+        hoverBorderColor: '#8c80cc',
       },
       InputNumber: {
         colorTextDisabled: '#636767',
         colorBgContainerDisabled: '#e7e7e7',
+        borderRadius: 4,
+        activeBorderColor: '#8c80cc',
+        hoverBorderColor: '#8c80cc',
+      },
+      Select: {
+        borderRadius: 4,
+        activeBorderColor: '#8c80cc',
+        hoverBorderColor: '#8c80cc',
+      },
+      Modal: {
+        borderRadiusLG: 4,
+        headerBg: '#8c80cc',
       },
       Table: {
         rowExpandedBg: 'transparent',
@@ -37,10 +56,10 @@ const antdDefaultConfig: ConfigProviderProps = {
         rowHoverBg: '#e2f2fd',
       },
       Badge: {
-        colorError: '#178FE2',
+        colorError: '#8c80cc',
       },
       Tooltip: {
-        colorBgSpotlight: '#178FE2',
+        colorBgSpotlight: '#8c80cc',
       },
       Collapse: {
         headerBg: '#fff',

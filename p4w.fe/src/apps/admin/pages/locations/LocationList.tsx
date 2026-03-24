@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Button, Input, Select, Space, Tag, Tooltip, message } from 'antd';
-import { EditOutlined, EyeInvisibleOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  EditOutlined,
+  EyeInvisibleOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import TableWithPagination from '@shared/components/tables/table-with-pagination';
 import LocationFormModal, { type LocationFormData } from './LocationFormModal';
 
@@ -24,32 +28,7 @@ const statusMeta: Record<
   draft: { label: 'Nháp', color: '#f59e0b', bg: '#fffbeb' },
 };
 
-const mockData: LocationRow[] = [
-  {
-    id: 1,
-    name: 'Café Đêm Trắng',
-    type: 'Café',
-    address: '12 Lý Thường Kiệt, Q.1, TP.HCM',
-    openingHours: '08:00 - 22:00',
-    status: 'active',
-  },
-  {
-    id: 2,
-    name: 'Homestay Mây Trắng',
-    type: 'Homestay',
-    address: 'Đà Lạt, Lâm Đồng',
-    openingHours: '24/7',
-    status: 'draft',
-  },
-  {
-    id: 3,
-    name: 'KDL Biển Xanh',
-    type: 'Khu du lịch',
-    address: 'Vũng Tàu',
-    openingHours: '07:00 - 18:00',
-    status: 'inactive',
-  },
-];
+const locationRows: LocationRow[] = [];
 
 export default function LocationList() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -74,28 +53,28 @@ export default function LocationList() {
     setSelectedLocation(null);
   };
 
-  const handleModalSubmit = async (values: LocationFormData) => {
+  const handleModalSubmit = async (_values: LocationFormData) => {
     try {
+      void _values;
       setLoading(true);
-      // TODO: Call API to add/edit location
-      // await api.locations.create/update(values)
       message.success(
         modalMode === 'add'
           ? 'Thêm địa điểm thành công'
           : 'Cập nhật địa điểm thành công'
       );
       handleModalCancel();
-    } catch  {
+    } catch {
       message.error('Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleHideLocation = (record: LocationRow) => {
-    // TODO: Call API to hide location
+  const handleHideLocation = (_record: LocationRow) => {
+    void _record;
     message.success('Ẩn địa điểm thành công');
   };
+
   const columns = useMemo(
     () => [
       {
@@ -147,7 +126,7 @@ export default function LocationList() {
         title: 'Thao tác',
         key: 'action',
         width: 160,
-        render: (_: any, record: LocationRow) => (
+        render: (_: unknown, record: LocationRow) => (
           <Space size={4}>
             <Tooltip title="Chỉnh sửa" color="var(--primary)">
               <Button
@@ -228,7 +207,7 @@ export default function LocationList() {
 
       <TableWithPagination
         columns={columns}
-        dataSource={mockData}
+        dataSource={locationRows}
         rowKey="id"
         bodyHeight="calc(100vh - 260px)"
       />
@@ -244,4 +223,3 @@ export default function LocationList() {
     </div>
   );
 }
-

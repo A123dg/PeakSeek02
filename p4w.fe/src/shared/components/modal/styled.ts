@@ -30,9 +30,10 @@ export const StyledModal = styled(Modal)`
   }
 
   .ant-modal-content {
-    border-radius: 10px;
+    border-radius: 12px;
     background-color: var(--white);
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
   }
 
   .ant-modal-header {
@@ -40,6 +41,7 @@ export const StyledModal = styled(Modal)`
     background-color: var(--primary);
 
     padding: 14px 24px;
+    border-radius: 12px 12px 0 0;
 
     .ant-modal-title {
       font-size: 2rem;
@@ -58,8 +60,8 @@ export const StyledModal = styled(Modal)`
 
   .ant-modal-footer {
     border-top: 0.5px solid var(--border-primary);
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
     padding: 14px 24px !important;
     background: var(--white);
     text-align: right;
@@ -67,7 +69,7 @@ export const StyledModal = styled(Modal)`
     .ant-btn {
       min-width: 100px;
       height: 40px;
-      border-radius: 6px;
+      border-radius: 4px;
       font-weight: 500;
 
       &:first-child {
@@ -129,23 +131,30 @@ export const StyledForm = styled(Form)`
   }
 
   .ant-input:focus,
-  .ant-select-selector:focus,
   .ant-input-textarea textarea:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(140, 128, 204, 0.12);
+  }
+
+  .ant-select-focused .ant-select-selector,
+  .ant-select-selector:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 2px rgba(140, 128, 204, 0.12) !important;
   }
 `;
 
 export const StyledModalDescription = styled(Modal)`
   .ant-modal-content {
-    border-radius: 10px;
+    border-radius: 12px;
     background-color: #ffffff;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
   }
 
   .ant-modal-header {
     background-color: #f9fafb;
     padding: 20px 24px;
+    border-radius: 12px 12px 0 0;
 
     .ant-modal-title {
       font-size: 20px;
@@ -204,11 +213,10 @@ export const StyledModalDescription = styled(Modal)`
       text-overflow: ellipsis !important;
     }
 
-    /* Chỉnh màu cho Value trong Descriptions (giữ nguyên) */
+    /*  màu cho Value trong Descriptions */
     .ant-descriptions-item-content {
       color: #1f2937;
-      /* Nếu value cũng không đổi màu, thêm !important vào đây: */
-      /* color: #1f2937 !important; */
+      
     }
   }
 `;
@@ -446,15 +454,17 @@ export const StyledFilterDrawer = styled(Drawer)`
 
 export const StyledConfirmModal = styled(Modal)`
   .ant-modal-content {
-    border-radius: 10px;
+    border-radius: 12px;
     background-color: #ffffff;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
   }
 
   .ant-modal-header {
     background-color: #f9fafb;
     padding: 16px 24px;
     border-bottom: 1px solid #e5e7eb;
+    border-radius: 12px 12px 0 0;
 
     .ant-modal-title {
       font-size: 18px;
@@ -492,7 +502,7 @@ export const StyledConfirmModal = styled(Modal)`
     padding: 12px 16px !important;
     background: #fff;
     text-align: right;
-    border-radius: 4px;
+    border-radius: 0 0 12px 12px;
 
     .ant-btn {
       min-width: 100px;

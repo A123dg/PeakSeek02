@@ -27,15 +27,15 @@ public class AuthService : IAuthService
         _mediaRepository = mediaRepository;
     }
 
-    public async Task<ApiResponse<LoginResponse>> LoginAsync(string email, string password)
+    public async Task<ApiResponse<LoginResponse>> LoginAsync(string userName, string password)
     {
-        User user = await _userRepository.GetUserByEmailAsync(email);
+        User user = await _userRepository.GetUserByUserNameAsync(userName);
         if (user == null || user.Status == UserStatuses.Inactive || !PasswordHelper.VerifyPassword(password, user.Password))
         {
             return new ApiResponse<LoginResponse>
             {
                 Success = false,
-                Message = "Invalid email or password",
+                Message = "Invalid username or password",
                 Data = null,
                 MetaData = null
             };

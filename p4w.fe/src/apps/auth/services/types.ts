@@ -1,5 +1,5 @@
 export type TLoginRequest = {
-  account: string;
+  userName: string;
   password: string;
 }
 
@@ -20,7 +20,7 @@ export interface IUser {
 }
 
 export interface ILoginRespone {
-  token: string;
+  accessToken: string;
   refreshToken: string;
   user: IUser;
 }

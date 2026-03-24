@@ -44,6 +44,10 @@ const BaseModal = ({
         padding: 0,
       }}
       styles={{
+        content: {
+          borderRadius: 4,
+          overflow: "hidden",
+        },
         body: {
           padding: 0,
           maxHeight: "var(--modal-max-height)",
@@ -51,8 +55,18 @@ const BaseModal = ({
         },
         footer: { borderRadius: 4 },
       }}
-      okButtonProps={{ size: "large", style: { minWidth: 100 }, type: "primary" }}
-      cancelButtonProps={{ size: "large", style: { minWidth: 100 } }}
+      okButtonProps={{
+        size: "large",
+        style: {
+          minWidth: 100,
+          borderRadius: 4,
+          backgroundColor: "#8c80cc",
+          borderColor: "#8c80cc",
+          boxShadow: "none",
+        },
+        type: "primary"
+      }}
+      cancelButtonProps={{ size: "large", style: { minWidth: 100, borderRadius: 4 } }}
       confirmLoading={loading}
       cancelText="Hủy"
       {...props}

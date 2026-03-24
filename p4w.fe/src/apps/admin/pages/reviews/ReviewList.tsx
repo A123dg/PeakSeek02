@@ -10,10 +10,10 @@ import {
   message,
 } from 'antd';
 import {
-  EyeOutlined,
-  StopOutlined,
   DownloadOutlined,
+  EyeOutlined,
   FilterOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import TableWithPagination from '@shared/components/tables/table-with-pagination';
 import { default as ReviewFormModal, type ReviewFormData } from './ReviewFormModal';
@@ -39,35 +39,7 @@ const statusMeta: Record<
   rejected: { label: 'Từ chối', color: '#dc2626', bg: '#fef2f2' },
 };
 
-const mockData: ReviewRow[] = [
-  {
-    id: 1,
-    user: 'Lam Anh',
-    location: 'Café Đêm Trắng',
-    rating: 4.5,
-    content: 'Không gian đẹp, wifi ổn.',
-    status: 'approved',
-    createdAt: '12/02/2026',
-  },
-  {
-    id: 2,
-    user: 'Minh Tuấn',
-    location: 'Homestay Mây Trắng',
-    rating: 3.0,
-    content: 'Phòng hơi nhỏ nhưng sạch sẽ.',
-    status: 'pending',
-    createdAt: '15/02/2026',
-  },
-  {
-    id: 3,
-    user: 'Hoài Thương',
-    location: 'KDL Biển Xanh',
-    rating: 2.0,
-    content: 'Dịch vụ chưa tốt, cần cải thiện.',
-    status: 'rejected',
-    createdAt: '18/02/2026',
-  },
-];
+const reviewRows: ReviewRow[] = [];
 
 export default function ReviewList() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -84,24 +56,24 @@ export default function ReviewList() {
     setSelectedReview(null);
   };
 
-  const handleModalSubmit = async (values: ReviewFormData) => {
+  const handleModalSubmit = async (_values: ReviewFormData) => {
     try {
+      void _values;
       setLoading(true);
-      // TODO: Call API to update review status
-      // await api.reviews.updateStatus(values)
       message.success('Cập nhật đánh giá thành công');
       handleModalCancel();
-    } catch (error) {
+    } catch {
       message.error('Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleHideReview = (record: ReviewRow) => {
-    // TODO: Call API to hide review
+  const handleHideReview = (_record: ReviewRow) => {
+    void _record;
     message.success('Ẩn đánh giá thành công');
   };
+
   const columns = useMemo(
     () => [
       {
@@ -164,7 +136,7 @@ export default function ReviewList() {
         title: 'Thao tác',
         key: 'action',
         width: 160,
-        render: (_: any, record: ReviewRow) => (
+        render: (_: unknown, record: ReviewRow) => (
           <Space size={4}>
             <Tooltip title="Xem chi tiết">
               <Button
@@ -244,8 +216,8 @@ export default function ReviewList() {
       </div>
 
       <TableWithPagination
-        columns={columns as any}
-        dataSource={mockData}
+        columns={columns as never}
+        dataSource={reviewRows}
         rowKey="id"
         bodyHeight="calc(100vh - 260px)"
       />
@@ -261,4 +233,3 @@ export default function ReviewList() {
     </div>
   );
 }
-

@@ -29,7 +29,7 @@ public class AuthController : ControllerBase
     [HttpPost("admin-login")]
     public async Task<ApiResponse<LoginResponse>> LoginAsync([FromBody] LoginRequest request)
     {
-        return await _authService.LoginAsync(request.Email, request.Password);
+        return await _authService.LoginAsync(request.UserName, request.Password);
     }
 
     [HttpPost("login-google")]

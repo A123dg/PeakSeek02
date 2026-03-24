@@ -6,6 +6,6 @@ export const getUserInfo = () => {
   const accessToken = tokenManager.getAccessToken();
   if (!accessToken) return;
   
-  const url = '/v1/auth/user/info';
+  const url = '/User/profile';
   return axiosClient.get(url);
 };

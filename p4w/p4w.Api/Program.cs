@@ -9,12 +9,31 @@ using System.Text;
 LoadDotEnv(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
 var builder = WebApplication.CreateBuilder(args);
+const string CorsPolicyName = "FrontendCors";
 
 builder.Services.AddControllers();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddApplicationContainer(builder.Configuration);
 builder.Services.AddSwaggerSetup();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicyName, policy =>
+    {
+        policy
+            .SetIsOriginAllowed(origin =>
+            {
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                {
+                    return false;
+                }
+
+                return uri.IsLoopback;
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtIssuer = jwtSection["Issuer"] ?? throw new InvalidOperationException("JWT issuer is missing.");
@@ -64,6 +83,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+app.UseCors(CorsPolicyName);
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

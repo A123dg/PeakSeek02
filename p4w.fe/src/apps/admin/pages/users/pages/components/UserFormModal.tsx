@@ -63,7 +63,7 @@ export function UserFormModal({
       name: 'name',
       component: <Input placeholder="Nhập tên người dùng" />,
       rules: [{ required: true, message: 'Vui lòng nhập tên' }],
-      span: 12,
+      span: 24,
     },
     {
       label: 'Email',
@@ -73,13 +73,13 @@ export function UserFormModal({
         { required: true, message: 'Vui lòng nhập email' },
         { type: 'email', message: 'Email không hợp lệ' },
       ],
-      span: 12,
+      span: 24,
     },
     {
       label: 'Số điện thoại',
       name: 'phoneNumber',
       component: <Input placeholder="Nhập số điện thoại" />,
-      span: 12,
+      span: 24,
     },
     {
       label: 'Vai trò',
@@ -95,7 +95,7 @@ export function UserFormModal({
         />
       ),
       rules: [{ required: true, message: 'Vui lòng chọn vai trò' }],
-      span: 12,
+      span: 24,
     },
     {
       label: 'Trạng thái',
@@ -110,7 +110,7 @@ export function UserFormModal({
         />
       ),
       rules: [{ required: true, message: 'Vui lòng chọn trạng thái' }],
-      span: 12,
+      span: 24,
     },
   ];
 

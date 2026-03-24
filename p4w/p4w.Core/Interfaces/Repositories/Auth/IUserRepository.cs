@@ -9,6 +9,8 @@ public interface IUserRepository {
     Task UpdateAsync(User user);
 
     Task<User> GetUserByIdAsync(Guid id);
+
+    Task<User> GetUserByUserNameAsync(string userName);
     Task<User> GetUserByEmailAsync(string email);
     Task<RecentLocationDto?> GetRecentLocationByUserIdAsync(Guid userId);
     Task<List<AdminUserDto>> GetUsersAsync(string? search, Guid? roleId, int? status);

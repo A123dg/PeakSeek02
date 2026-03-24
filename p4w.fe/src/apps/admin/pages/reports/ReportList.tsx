@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Button, Input, Select, Space, Tag, Tooltip, message } from 'antd';
 import {
-  EyeOutlined,
   CheckOutlined,
   CloseOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import TableWithPagination from '@shared/components/tables/table-with-pagination';
 import ReportFormModal, { type ReportFormData } from './ReportFormModal';
@@ -37,44 +37,7 @@ const reportTypeMeta: Record<ReportType, string> = {
   comment: 'Bình luận',
 };
 
-const mockData: ReportRow[] = [
-  {
-    id: 1,
-    reportedBy: 'Nguyễn Văn A',
-    reportedItemType: 'review',
-    reportedItem: 'Đánh giá về Café Đêm Trắng',
-    reason: 'Nội dung không phù hợp',
-    status: 'pending',
-    createdAt: '2026-02-25 10:30',
-  },
-  {
-    id: 2,
-    reportedBy: 'Trần Thị B',
-    reportedItemType: 'user',
-    reportedItem: 'Người dùng Spam123',
-    reason: 'Spam, lạm dụng nền tảng',
-    status: 'pending',
-    createdAt: '2026-02-24 14:15',
-  },
-  {
-    id: 3,
-    reportedBy: 'Lê Văn C',
-    reportedItemType: 'location',
-    reportedItem: 'KDL Biển Xanh',
-    reason: 'Thông tin sai lệch',
-    status: 'approved',
-    createdAt: '2026-02-23 09:00',
-  },
-  {
-    id: 4,
-    reportedBy: 'Phạm Thị D',
-    reportedItemType: 'comment',
-    reportedItem: 'Bình luận trên đánh giá',
-    reason: 'Nội dung độc hại',
-    status: 'rejected',
-    createdAt: '2026-02-22 16:45',
-  },
-];
+const reportRows: ReportRow[] = [];
 
 export default function ReportList() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -107,11 +70,10 @@ export default function ReportList() {
     setSelectedReport(null);
   };
 
-  const handleModalSubmit = async (values: ReportFormData) => {
+  const handleModalSubmit = async (_values: ReportFormData) => {
     try {
+      void _values;
       setLoading(true);
-      // TODO: Call API to approve/reject report
-      // await api.reports.approve/reject(values)
       message.success(
         modalMode === 'approve'
           ? 'Duyệt báo cáo thành công'
@@ -120,7 +82,7 @@ export default function ReportList() {
             : 'Cập nhật báo cáo thành công'
       );
       handleModalCancel();
-    } catch (error) {
+    } catch {
       message.error('Có lỗi xảy ra');
     } finally {
       setLoading(false);
@@ -187,7 +149,7 @@ export default function ReportList() {
         title: 'Thao tác',
         key: 'action',
         width: 200,
-        render: (_: any, record: ReportRow) =>
+        render: (_: unknown, record: ReportRow) =>
           record.status === 'pending' ? (
             <Space size={4}>
               <Tooltip title="Xem chi tiết" color="var(--primary)">
@@ -281,7 +243,7 @@ export default function ReportList() {
 
       <TableWithPagination
         columns={columns}
-        dataSource={mockData}
+        dataSource={reportRows}
         rowKey="id"
         bodyHeight="calc(100vh - 260px)"
       />
