@@ -1,10 +1,14 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using p4w.Api.Dtos.Auth;
+using p4w.Core.Dtos.User;
 using p4w.Core.Interfaces.Repositories.Auth;
 using p4w.Core.Interfaces.Services.Auth;
 using p4w.Core.Paginations;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace p4w.Api.Controllers.Auth;
 
@@ -15,15 +19,21 @@ public class AuthController : ControllerBase
     private readonly IAuthService _authService;
     private readonly IJwtService _jwtService;
     private readonly IUserRepository _userRepository;
+    private readonly IConfiguration _configuration;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public AuthController(
         IAuthService authService,
         IJwtService jwtService,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory)
     {
         _authService = authService;
         _jwtService = jwtService;
         _userRepository = userRepository;
+        _configuration = configuration;
+        _httpClientFactory = httpClientFactory;
     }
 
     [HttpPost("admin-login")]
@@ -36,6 +46,110 @@ public class AuthController : ControllerBase
     public async Task<ApiResponse<LoginResponse>> LoginWithGoogleAsync([FromBody] GoogleLoginRequest request)
     {
         return await _authService.LoginWithGoogleAsync(request.IdToken);
+    }
+
+    [HttpGet("google-login")]
+    public IActionResult GoogleLogin([FromQuery] string? redirectUri = null)
+    {
+        var clientId = _configuration["Authentication:Google:ClientId"]
+            ?? Environment.GetEnvironmentVariable("Authentication__Google__ClientId")
+            ?? throw new InvalidOperationException("Google ClientId is missing.");
+
+        var callbackUri = BuildGoogleCallbackUri(redirectUri);
+        var authUrl = QueryHelpers.AddQueryString(
+            "https://accounts.google.com/o/oauth2/v2/auth",
+            new Dictionary<string, string?>
+            {
+                ["client_id"] = clientId,
+                ["redirect_uri"] = callbackUri,
+                ["response_type"] = "code",
+                ["scope"] = "openid email profile",
+                ["access_type"] = "offline",
+                ["prompt"] = "select_account"
+            });
+
+        return Redirect(authUrl);
+    }
+
+    [HttpGet("google-callback")]
+    public async Task<IActionResult> GoogleCallbackAsync([FromQuery] string? code, [FromQuery] string? error = null, [FromQuery] string? redirectUri = null)
+    {
+        if (!string.IsNullOrWhiteSpace(error))
+        {
+            return BuildGoogleRedirectResult(redirectUri, success: false, message: error);
+        }
+
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return BuildGoogleRedirectResult(redirectUri, success: false, message: "missing_code");
+        }
+
+        var clientId = _configuration["Authentication:Google:ClientId"]
+            ?? Environment.GetEnvironmentVariable("Authentication__Google__ClientId")
+            ?? throw new InvalidOperationException("Google ClientId is missing.");
+
+        var clientSecret = _configuration["Authentication:Google:ClientSecret"]
+            ?? Environment.GetEnvironmentVariable("Authentication__Google__ClientSecret")
+            ?? throw new InvalidOperationException("Google ClientSecret is missing.");
+
+        var callbackUri = BuildGoogleCallbackUri(redirectUri);
+        var httpClient = _httpClientFactory.CreateClient();
+
+        using var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token")
+        {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["code"] = code,
+                ["client_id"] = clientId,
+                ["client_secret"] = clientSecret,
+                ["redirect_uri"] = callbackUri,
+                ["grant_type"] = "authorization_code"
+            })
+        };
+        tokenRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        using var tokenResponse = await httpClient.SendAsync(tokenRequest);
+        var tokenJson = await tokenResponse.Content.ReadAsStringAsync();
+
+        if (!tokenResponse.IsSuccessStatusCode)
+        {
+            return BuildGoogleRedirectResult(redirectUri, success: false, message: "google_token_exchange_failed");
+        }
+
+        var tokenPayload = JsonSerializer.Deserialize<GoogleTokenResponse>(tokenJson, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        if (string.IsNullOrWhiteSpace(tokenPayload?.IdToken))
+        {
+            return BuildGoogleRedirectResult(redirectUri, success: false, message: "missing_id_token");
+        }
+
+        var loginResponse = await _authService.LoginWithGoogleAsync(tokenPayload.IdToken);
+
+        if (string.IsNullOrWhiteSpace(redirectUri))
+        {
+            return Ok(loginResponse);
+        }
+
+        if (!loginResponse.Success || loginResponse.Data == null)
+        {
+            return BuildGoogleRedirectResult(redirectUri, success: false, message: loginResponse.Message ?? "login_failed");
+        }
+
+        var finalRedirect = QueryHelpers.AddQueryString(
+            redirectUri,
+            new Dictionary<string, string?>
+            {
+                ["success"] = "true",
+                ["accessToken"] = loginResponse.Data.accessToken,
+                ["refreshToken"] = loginResponse.Data.refreshToken,
+                ["expiresAt"] = loginResponse.Data.expiresAt?.ToString("O"),
+                ["refreshTokenExpiryTime"] = loginResponse.Data.RefreshTokenExpiryTime?.ToString("O")
+            });
+
+        return Redirect(finalRedirect);
     }
 
     [HttpPost("register")]
@@ -53,6 +167,17 @@ public class AuthController : ControllerBase
 
     return await _authService.LogoutAsync(Guid.Parse(userId));
 }
+
+    [Authorize]
+    [HttpPut("update-profile")]
+    public async Task<ApiResponse<UserProfileDto>> UpdateProfileAsync([FromBody] UpdateProfileRequest request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            throw new Exception("Invalid token");
+
+        return await _authService.UpdateProfileAsync(Guid.Parse(userId), request);
+    }
 
     [HttpPost("refresh-token")]
     public async Task<ApiResponse<LoginResponse>> RefreshTokenAsync([FromBody] RefreshTokenRequest request)
@@ -100,5 +225,43 @@ public class AuthController : ControllerBase
                 RefreshTokenExpiryTime = refreshTokenExpiry
             }
         };
+    }
+
+    private string BuildGoogleCallbackUri(string? redirectUri)
+    {
+        return Url.ActionLink(
+            action: nameof(GoogleCallbackAsync),
+            controller: "Auth",
+            values: new { redirectUri },
+            protocol: Request.Scheme)
+            ?? throw new InvalidOperationException("Cannot build Google callback URL.");
+    }
+
+    private IActionResult BuildGoogleRedirectResult(string? redirectUri, bool success, string message)
+    {
+        if (string.IsNullOrWhiteSpace(redirectUri))
+        {
+            return BadRequest(new ApiResponse<LoginResponse>
+            {
+                Success = success,
+                Message = message,
+                Data = null
+            });
+        }
+
+        var finalRedirect = QueryHelpers.AddQueryString(
+            redirectUri,
+            new Dictionary<string, string?>
+            {
+                ["success"] = success ? "true" : "false",
+                ["message"] = message
+            });
+
+        return Redirect(finalRedirect);
+    }
+
+    private sealed class GoogleTokenResponse
+    {
+        public string? IdToken { get; set; }
     }
 }

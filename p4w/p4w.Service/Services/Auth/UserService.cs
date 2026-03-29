@@ -4,6 +4,7 @@ using p4w.Core.Dtos.User;
 using p4w.Core.Interfaces.Repositories.Auth;
 using p4w.Core.Interfaces.Repositories.MediaRepo;
 using p4w.Core.Models;
+using p4w.Core.Paginations;
 
 namespace p4w.Core.Interfaces.Services.Auth
 {
@@ -23,68 +24,80 @@ namespace p4w.Core.Interfaces.Services.Auth
 
     }   
 
-        async Task<UserDto> IUserService.GetUserByIdAsync(Guid userId)
+      public   async Task<UserResponseDto> GetUserByIdAsync(Guid userId)
         {
             User user = await _userRepository.GetUserByIdAsync(userId);
-            return new UserDto
-            {
-                Email = user.Email,
-                UserName = user.UserName,
-                DateOfBirth = user.DateOfBirth,
-                mediaLinkUrl = user.MediaLinks
-            .Where(m => m.EntityType == "avatar")   
-            .OrderBy(m => m.SortOrder)
-            .Select(m => m.Media.Url)
-            .FirstOrDefault() ?? ""
-            };
+            return MapUserResponse(user);
         }
 
-        Task<UserDto> IUserService.GetUserByEmailAsync(string email)
+        async Task<UserResponseDto> IUserService.GetUserByEmailAsync(string email)
         {
-            User user = _userRepository.GetUserByEmailAsync(email).Result;
-            return Task.FromResult(new UserDto
-            {
-                Email = user.Email,
-                UserName = user.UserName,
-                DateOfBirth = user.DateOfBirth,
-                mediaLinkUrl = user.MediaLinks
-            .Where(m => m.EntityType == "avatar")   
-            .OrderBy(m => m.SortOrder)
-            .Select(m => m.Media.Url)
-            .FirstOrDefault() ?? ""
-            });
+            User user = await _userRepository.GetUserByEmailAsync(email);
+            return MapUserResponse(user);
         }
 
         public async Task<UserProfileDto> GetUserProfileAsync(Guid userId)
-        {
-            User user = await _userRepository.GetUserByIdAsync(userId);
-            RecentLocationDto? recentLocation = await _userRepository.GetRecentLocationByUserIdAsync(userId);
+{
+    User user = await _userRepository.GetUserByIdAsync(userId);
+    RecentLocationDto? recentLocation = await _userRepository.GetRecentLocationByUserIdAsync(userId);
 
-            return new UserProfileDto
-            {
-                Email = user.Email,
-                UserName = user.UserName,
-                DateOfBirth = user.DateOfBirth,
-                MediaLinkUrl = user.MediaLinks
-            .Where(m => m.EntityType == "avatar")   
+    return new UserProfileDto
+    {
+        Id = user.Id,
+        RoleId = user.RoleId,
+        GoogleUserId = user.GoogleUserId,
+        Email = user.Email,
+        UserName = user.UserName,
+        DateOfBirth = user.DateOfBirth,
+        Password = user.Password,
+        Status = user.Status,
+        RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
+        CreatedAt = user.CreatedAt,
+        MediaLinkUrl = user.MediaLinks
+            .Where(m => m.EntityType == "avatar")
             .OrderBy(m => m.SortOrder)
             .Select(m => m.Media.Url)
             .FirstOrDefault() ?? "",
-                RecentLocation = recentLocation
-            };
-        }
+        RecentLocation = recentLocation,
+        OwnedLocations = user.OwnedLocations
+            .OrderBy(x => x.LocationName)
+            .Select(x => new OwnedLocationDto
+            {
+                Id = x.Id,
+                LocationName = x.LocationName,
+                Address = x.Address,
+                Status = x.Status,
+                StatusName = x.Status == LocationStatuses.Pending
+                    ? "pending"
+                    : x.Status == LocationStatuses.Approved
+                        ? "approved"
+                        : x.Status == LocationStatuses.Rejected
+                            ? "rejected"
+                            : x.Status == LocationStatuses.Active
+                                ? "active"
+                                : "inactive"
+            })
+            .ToList()
+    };
+}
 
         public async Task<RecentLocationDto?> GetRecentLocationAsync(Guid userId)
         {
             return await _userRepository.GetRecentLocationByUserIdAsync(userId);
         }
 
-        public async Task<List<AdminUserDto>> GetUsersAsync(string? search, Guid? roleId, int? status)
+        public async Task<PagedResult<UserResponseDto>> GetUsersAsync(string? search, Guid? roleId, int? status, int page, int pageSize)
         {
-            return await _userRepository.GetUsersAsync(search, roleId, status);
+            return await _userRepository.GetUsersAsync(search, roleId, status, page, pageSize);
         }
 
-        public async Task<AdminUserDto> CreateAdminUserAsync(AdminUpsertUserRequest request)
+        public async Task<UserResponseDto> GetAdminUserByIdAsync(Guid userId)
+        {
+            var user = await _userRepository.GetAdminUserByIdAsync(userId);
+            return MapUserResponse(user);
+        }
+
+        public async Task<UserResponseDto> CreateAdminUserAsync(AdminUpsertUserRequest request)
         {
             var exists = await _userRepository.ExistsByEmailAsync(request.Email);
             if (exists)
@@ -129,12 +142,12 @@ namespace p4w.Core.Interfaces.Services.Auth
             }
 
             await _userRepository.AddAsync(user);
-            return (await _userRepository.GetUsersAsync(user.Email, null, null)).First(x => x.Id == user.Id);
+            return (await _userRepository.GetUsersAsync(user.Email, null, null, 1, 1)).Items.First(x => x.Id == user.Id);
         }
 
-        public async Task<AdminUserDto> UpdateAdminUserAsync(Guid userId, AdminUpsertUserRequest request)
+        public async Task<UserResponseDto> UpdateAdminUserAsync(Guid userId, AdminUpsertUserRequest request)
         {
-            var user = await _userRepository.GetUserByIdAsync(userId);
+            var user = await _userRepository.GetAdminUserByIdAsync(userId);
             var exists = await _userRepository.ExistsByEmailAsync(request.Email, userId);
             if (exists)
             {
@@ -158,15 +171,67 @@ namespace p4w.Core.Interfaces.Services.Auth
             }
 
             await _userRepository.UpdateAsync(user);
-            return (await _userRepository.GetUsersAsync(user.Email, null, null)).First(x => x.Id == user.Id);
+            return (await _userRepository.GetUsersAsync(user.Email, null, null, 1, 1)).Items.First(x => x.Id == user.Id);
         }
 
-        public async Task<AdminUserDto> LockUserAsync(Guid userId)
+        public async Task<UserResponseDto> LockUserAsync(Guid userId)
         {
-            var user = await _userRepository.GetUserByIdAsync(userId);
+            var user = await _userRepository.GetAdminUserByIdAsync(userId);
             user.Status = UserStatuses.Locked;
             await _userRepository.UpdateAsync(user);
-            return (await _userRepository.GetUsersAsync(user.Email, null, null)).First(x => x.Id == user.Id);
+            return (await _userRepository.GetUsersAsync(user.Email, null, null, 1, 1)).Items.First(x => x.Id == user.Id);
+        }
+
+        public async Task<UserResponseDto> UnlockUserAsync(Guid userId)
+        {
+            var user = await _userRepository.GetAdminUserByIdAsync(userId);
+            user.Status = UserStatuses.Active;
+            await _userRepository.UpdateAsync(user);
+            return (await _userRepository.GetUsersAsync(user.Email, null, null, 1, 1)).Items.First(x => x.Id == user.Id);
+        }
+
+        private static UserResponseDto MapUserResponse(User user)
+        {
+            return new UserResponseDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                RoleId = user.RoleId,
+                RoleName = user.Role?.Name ?? string.Empty,
+                Status = user.Status,
+                StatusName = user.Status == UserStatuses.Active
+                    ? "active"
+                    : user.Status == UserStatuses.Locked
+                        ? "locked"
+                        : "inactive",
+                DateOfBirth = user.DateOfBirth,
+                MediaLinkUrl = user.MediaLinks
+                    .Where(m => m.EntityType == "avatar")
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => m.Media.Url)
+                    .FirstOrDefault() ?? string.Empty,
+                CreatedAt = user.CreatedAt,
+                OwnedLocations = user.OwnedLocations
+                    .OrderBy(x => x.LocationName)
+                    .Select(x => new OwnedLocationDto
+                    {
+                        Id = x.Id,
+                        LocationName = x.LocationName,
+                        Address = x.Address,
+                        Status = x.Status,
+                        StatusName = x.Status == LocationStatuses.Pending
+                            ? "pending"
+                            : x.Status == LocationStatuses.Approved
+                                ? "approved"
+                                : x.Status == LocationStatuses.Rejected
+                                    ? "rejected"
+                                    : x.Status == LocationStatuses.Active
+                                        ? "active"
+                                        : "inactive"
+                    })
+                    .ToList()
+            };
         }
 
         public async Task CreateUserAsync(UserDto userCreateDto)
@@ -240,6 +305,7 @@ namespace p4w.Core.Interfaces.Services.Auth
     await _userRepository.UpdateAsync(user);
 
         }
+        
 
         public async Task DeleteUserAsync(Guid userId)
         {

@@ -16,6 +16,16 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
+## Google login setup
+
+Before testing Google login, configure these env vars in `.env`:
+
+- `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`: OAuth client of type `Web application`
+- `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`: OAuth client of type `iOS`
+- `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`: OAuth client of type `Android`
+
+Do not reuse the web client ID for iOS or Android. Google will reject the OAuth request with `400 invalid_request` or `Access blocked` when the client type and redirect validation do not match the current platform.
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)

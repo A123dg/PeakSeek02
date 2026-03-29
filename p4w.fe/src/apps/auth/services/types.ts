@@ -1,26 +1,27 @@
 export type TLoginRequest = {
   userName: string;
   password: string;
-}
+};
 
 export interface IRole {
-  roleId: number;
+  roleId: string;
   roleName: string;
-  idDonvi: number;
-  chucvu: string;
+  idDonvi?: number;
+  chucvu?: string;
 }
 
 export interface IUser {
-  id: number;
-  username: string;
+  id: string;
+  userName: string;
   email: string;
-  roles: IRole[];
-  idDơnVi: number;
-  tenDonVi: string;
+  roleId: string;
+  roleName: string;
+  status: number;
 }
 
 export interface ILoginRespone {
   accessToken: string;
   refreshToken: string;
-  user: IUser;
+  expiresAt?: string;
+  refreshTokenExpiryTime?: string;
 }

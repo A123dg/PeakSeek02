@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
-import { Form, Input, Select } from 'antd';
-import ModalForm from '@shared/components/modal/ModalForm';
+import { useEffect } from "react";
+import { Form, Input, Select } from "antd";
 
-type ReportFormModalMode = 'view' | 'approve' | 'reject';
-type ReportStatus = 'pending' | 'approved' | 'rejected';
+import ModalForm from "@shared/components/modal/ModalForm";
+
+type ReportFormModalMode = "view" | "approve" | "reject";
+type ReportStatus = "pending" | "approved" | "rejected";
 
 export interface ReportFormData {
-  id?: number;
+  id?: string;
   reportedBy?: string;
   reportedItem?: string;
   reportedItemType?: string;
@@ -55,103 +56,100 @@ export function ReportFormModal({
     }
   }, [open, data, form]);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: ReportFormData) => {
     const formData: ReportFormData = {
       ...values,
-      ...(data?.id && { id: data.id }),
+      ...(data?.id ? { id: data.id } : {}),
     };
     await onSubmit(formData);
   };
 
-  const isViewMode = mode === 'view';
+  const isViewMode = mode === "view";
 
   const getModalTitle = () => {
     switch (mode) {
-      case 'view':
-        return 'Chi tiết báo cáo';
-      case 'approve':
-        return 'Duyệt báo cáo';
-      case 'reject':
-        return 'Từ chối báo cáo';
+      case "view":
+        return "Chi tiet bao cao";
+      case "approve":
+        return "Duyet bao cao";
+      case "reject":
+        return "Tu choi bao cao";
       default:
-        return 'Báo cáo';
+        return "Bao cao";
     }
   };
 
   const getOkButtonText = () => {
     switch (mode) {
-      case 'view':
-        return 'Đóng';
-      case 'approve':
-        return 'Duyệt';
-      case 'reject':
-        return 'Từ chối';
+      case "view":
+        return "Dong";
+      case "approve":
+        return "Duyet";
+      case "reject":
+        return "Tu choi";
       default:
-        return 'Lưu';
+        return "Luu";
     }
   };
 
   const formItems = [
     {
-      label: 'Người báo cáo',
-      name: 'reportedBy',
+      label: "Nguoi bao cao",
+      name: "reportedBy",
       component: <Input disabled />,
       span: 12,
     },
     {
-      label: 'Loại báo cáo',
-      name: 'reportedItemType',
+      label: "Loai bao cao",
+      name: "reportedItemType",
       component: <Input disabled />,
       span: 12,
     },
     {
-      label: 'Mục báo cáo',
-      name: 'reportedItem',
+      label: "Muc bao cao",
+      name: "reportedItem",
       component: <Input disabled />,
       span: 12,
     },
     {
-      label: 'Ngày tạo',
-      name: 'createdAt',
+      label: "Ngay tao",
+      name: "createdAt",
       component: <Input disabled />,
       span: 12,
     },
     {
-      label: 'Lý do',
-      name: 'reason',
+      label: "Trang thai",
+      name: "status",
+      component: (
+        <Select
+          disabled={isViewMode}
+          options={[
+            { value: "pending", label: "Cho duyet" },
+            { value: "approved", label: "Da duyet" },
+            { value: "rejected", label: "Tu choi" },
+          ]}
+        />
+      ),
+      span: 12,
+    },
+    {
+      label: "Ly do",
+      name: "reason",
       component: <Input disabled />,
       span: 24,
     },
     {
-      label: 'Mô tả chi tiết',
-      name: 'description',
+      label: "Mo ta chi tiet",
+      name: "description",
       span: 24,
       component: <Input.TextArea rows={4} disabled={isViewMode} />,
     },
     {
-      label: 'Bằng chứng',
-      name: 'evidence',
+      label: "Bang chung",
+      name: "evidence",
       span: 24,
       component: <Input.TextArea rows={3} disabled={isViewMode} />,
     },
-    ...(mode !== 'view'
-      ? [
-          {
-            label: 'Trạng thái',
-            name: 'status',
-            component: (
-              <Select
-                options={[
-                  { value: 'pending', label: 'Chờ duyệt' },
-                  { value: 'approved', label: 'Đã duyệt' },
-                  { value: 'rejected', label: 'Từ chối' },
-                ]}
-              />
-            ),
-            span: 12,
-          },
-        ]
-      : []),
   ];
 
   return (
@@ -160,12 +158,12 @@ export function ReportFormModal({
       title={getModalTitle()}
       loading={loading}
       onCancel={onCancel}
-      onOk={() => form.submit()}
+      onOk={isViewMode ? onCancel : () => form.submit()}
       formItems={formItems}
       form={form}
       onFinish={handleSubmit}
       okText={getOkButtonText()}
-      cancelText={isViewMode ? undefined : 'Hủy'}
+      cancelText={isViewMode ? undefined : "Huy"}
       width={800}
     />
   );

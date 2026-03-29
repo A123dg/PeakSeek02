@@ -11,6 +11,7 @@ namespace p4w.Core.Models
         }
 
         public Guid Id { get; set; }
+        public Guid? OwnerId { get; set; }
         public string LocationName { get; set; } = null!;
         public string? Description { get; set; }
         public string Address { get; set; } = null!;
@@ -20,6 +21,7 @@ namespace p4w.Core.Models
         public int Type { get; set; }
         public int Status { get; set; }
 
+        public virtual User? Owner { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
     }
 }

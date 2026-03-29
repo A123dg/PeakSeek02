@@ -37,15 +37,16 @@ public class ReportController : ControllerBase
 
     [Authorize(Policy = AuthPolicies.AdminOnly)]
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<ReportDto>>>> GetReports([FromQuery] string? targetType, [FromQuery] int? status, [FromQuery] string? search)
+    public async Task<ActionResult<ApiResponse<List<ReportDto>>>> GetReports([FromQuery] string? targetType, [FromQuery] int? status, [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var reports = await _reportService.GetReportsAsync(targetType, status, search);
+        var reports = await _reportService.GetReportsAsync(targetType, status, search, page, pageSize);
         return Ok(new ApiResponse<List<ReportDto>>
         {
             Code = 200,
             Success = true,
             Message = "Reports retrieved successfully",
-            Data = reports
+            Data = reports.Items,
+            MetaData = reports.MetaData
         });
     }
 

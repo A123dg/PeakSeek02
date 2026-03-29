@@ -1,130 +1,135 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View, Image, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useMemo, useState } from "react";
+import { SafeAreaView, ScrollView, StyleSheet, Text, View, Image, Pressable, ActivityIndicator } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-import { Palette } from '@/components/app/palette';
-import { PlaceCard } from '@/components/app/PlaceCard';
-import { SearchInput } from '@/components/app/SearchInput';
-import { SectionHeader } from '@/components/app/SectionHeader';
-import { StatCard } from '@/components/app/StatCard';
-import {  useRouter } from 'expo-router';
-import { TagPill } from '@/components/app/TagPill';
+import { Palette } from "@/components/app/palette";
+import { PlaceCard } from "@/components/app/PlaceCard";
+import { SearchInput } from "@/components/app/SearchInput";
+import { SectionHeader } from "@/components/app/SectionHeader";
+import { useRouter } from "expo-router";
+import { TagPill } from "@/components/app/TagPill";
+import { getLocationsApi, type LocationCard } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 
-const stats = [
-  { label: 'Địa điểm gần bạn', value: '24' },
-  { label: 'Quán yêu thích', value: '08' },
-  { label: 'Đánh giá mới', value: '128' },
-];
+const categories = ["Tat ca", "Coworking", "Thu vien", "Ca phe", "Ngoai troi"];
 
-const featuredPlaces = [
-  {
-    title: 'Lumen Workspace',
-    area: 'Quán 1, TP.HCM',
-    price: 'Từ 45.000đ/giờ',
-    rating: 4.8,
-    imageUrl: 'https://picsum.photos/seed/peakseek1/600/400',
-    tags: ['Yên tĩnh', 'Ở cầm', 'Wifi mạnh'],
-  },
-  {
-    title: 'The Nest Cafe',
-    area: 'Quán 3, TP.HCM',
-    price: 'Từ 35.000đ/lý',
-    rating: 4.6,
-    imageUrl: 'https://picsum.photos/seed/peakseek2/600/400',
-    tags: ['Cà phê', 'Có nhạc nhẹ'],
-  },
-  {
-    title: 'Atlas Study Hub',
-    area: 'Bình Thạnh, TP.HCM',
-    price: 'Từ 60.000đ/giờ',
-    rating: 4.7,
-    imageUrl: 'https://picsum.photos/seed/peakseek3/600/400',
-    tags: ['Yên tĩnh', 'Giờ mở cửa muộn'],
-  },
-];
-const categories = ['Tat ca', 'Coworking', 'Thu vien', 'Ca phe', 'Ngoai troi'];
+const getTypeLabel = (type: number) => {
+  switch (type) {
+    case 1:
+      return "Coworking";
+    case 2:
+      return "Thu vien";
+    case 3:
+      return "Ca phe";
+    default:
+      return "Dia diem";
+  }
+};
 
-const nearbyPlaces = [
-  {
-    title: 'Mono Desk',
-    area: 'Quán 10, TP.HCM',
-    price: 'Từ 50.000đ/giờ',
-    rating: 4.5,
-    imageUrl: 'https://picsum.photos/seed/peakseek4/600/400',
-    tags: ['Phòng họp', 'Máy chiếu'],
-  },
-  {
-    title: 'Fika Corner',
-    area: 'Phú Nhuận, TP.HCM',
-    price: 'Từ 40.000đ/lý',
-    rating: 4.4,
-    imageUrl: 'https://picsum.photos/seed/peakseek5/600/400',
-    tags: ['Cà phê', 'Sôi động'],
-  },
-];
+const toPlaceCardProps = (location: LocationCard) => ({
+  title: location.locationName,
+  area: location.address,
+  price: location.openingHours && location.closingHours ? `${location.openingHours} - ${location.closingHours}` : "Dang cap nhat",
+  rating: location.averageRating || 0,
+  imageUrl: `https://picsum.photos/seed/${location.id}/600/400`,
+  tags: [getTypeLabel(location.type), `${location.reviewCount} danh gia`],
+});
 
 export default function HomeScreen() {
-  const user = {
-    name: 'Vũ',
-    avatarUrl: 'https://i.pravatar.cc/150?img=12',
-  };
   const router = useRouter();
+  const { profile } = useAuth();
+  const [locations, setLocations] = useState<LocationCard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        const response = await getLocationsApi();
+        setLocations(response.data);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadLocations();
+  }, []);
+
+  const featuredPlaces = useMemo(() => locations.slice(0, 3), [locations]);
+  const nearbyPlaces = useMemo(() => locations.slice(0, 5), [locations]);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* HERO ROW với greeting + avatar */}
         <View style={styles.heroRow}>
           <View style={styles.heroText}>
-            <Text style={styles.greeting}>Xin chào, {user.name}</Text>
-            <Text style={styles.subGreeting}>Hôm nay bạn muốn học ở đâu?</Text>
+            <Text style={styles.greeting}>Xin chao, {profile?.userName ?? "ban"}</Text>
+            <Text style={styles.subGreeting}>Hom nay ban muon hoc o dau?</Text>
           </View>
 
           <Pressable
             onPress={() => {
-router.push("/(tabs)/profile");
+              router.push("/(tabs)/profile");
             }}
             style={styles.avatarBtn}
             hitSlop={10}
           >
-            {user.avatarUrl ? (
-              <Image source={{ uri: user.avatarUrl }} style={styles.avatarImg} />
+            {profile?.mediaLinkUrl ? (
+              <Image source={{ uri: profile.mediaLinkUrl }} style={styles.avatarImg} />
             ) : (
               <Ionicons name="person" size={20} color={Palette.text} />
             )}
           </Pressable>
         </View>
 
-        <SearchInput placeholder="Tìm kiếm quán cà phê, thư viện, coworking..." />
-            <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.categoryRow}>
-                      {categories.map((category) => (
-                        <TagPill key={category} label={category} />
-                      ))}
-                    </ScrollView>
-        
+        <SearchInput placeholder="Tim kiem quan ca phe, thu vien, coworking..." />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
+          {categories.map((category) => (
+            <TagPill key={category} label={category} />
+          ))}
+        </ScrollView>
 
-        <View style={styles.section}>
-          <SectionHeader title="Địa điểm yêu thích" actionLabel="Xem tất cả" onPressAction={()=> router.push('/(tabs)/explore')} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-            {featuredPlaces.map((place) => (
-              <View key={place.title} style={styles.featuredItem}>
-                <PlaceCard {...place} onPressCard={()=> router.push('/location/location-info')}/>
+        {isLoading ? (
+          <ActivityIndicator color={Palette.primary} />
+        ) : (
+          <>
+            <View style={styles.section}>
+              <SectionHeader title="Gan day" />
+              <View style={styles.verticalList}>
+                {nearbyPlaces.map((place) => (
+                  <PlaceCard
+                    key={place.id}
+                    {...toPlaceCardProps(place)}
+                    layout="horizontal"
+                    onPressCard={() =>
+                      router.push({
+                        pathname: "/location/location-info",
+                        params: { locationId: place.id },
+                      })
+                    }
+                  />
+                ))}
               </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.section}>
-          <SectionHeader title="Gần đây" />
-          <View style={styles.verticalList}>
-            {nearbyPlaces.map((place) => (
-              <PlaceCard key={place.title} {...place} layout="horizontal" onPressCard={() => router.push('/location/location-info')} />
-            ))}
-          </View>
-        </View>
+            </View>
+            <View style={styles.section}>
+              <SectionHeader title="Tat ca dia diem" />
+              <View style={styles.list}>
+                {featuredPlaces.map((place) => (
+                  <PlaceCard
+                    key={place.id}
+                    {...toPlaceCardProps(place)}
+                    layout="horizontal"
+                    onPressCard={() =>
+                      router.push({
+                        pathname: "/location/location-info",
+                        params: { locationId: place.id },
+                      })
+                    }
+                  />
+                ))}
+              </View>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -143,25 +148,28 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   heroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 12,
   },
   heroText: {
     flex: 1,
     gap: 6,
   },
+  list: {
+    gap: 12,
+  },
   greeting: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Palette.text,
   },
   subGreeting: {
     fontSize: 14,
     color: Palette.subtext,
   },
-   categoryRow: {
+  categoryRow: {
     gap: 8,
   },
   avatarBtn: {
@@ -171,27 +179,17 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.card,
     borderWidth: 1,
     borderColor: Palette.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
   },
   avatarImg: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
   section: {
     gap: 12,
-  },
-  horizontalList: {
-    gap: 14,
-  },
-  featuredItem: {
-    width: 260,
   },
   verticalList: {
     gap: 12,

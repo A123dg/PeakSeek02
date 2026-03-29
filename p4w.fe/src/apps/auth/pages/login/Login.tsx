@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Form, Input } from 'antd';
-import { EyeInvisibleOutlined, EyeOutlined, EyeTwoTone } from '@ant-design/icons';
+import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import { Link } from '@tanstack/react-router';
 import useCheckLogin from '@/shared/hooks/useCheckLogin';
 import { handleRedirect } from '@shared/utils';

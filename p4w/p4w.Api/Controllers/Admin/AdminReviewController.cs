@@ -20,15 +20,16 @@ public class AdminReviewController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<AdminReviewDto>>>> GetReviews([FromQuery] string? search, [FromQuery] int? status, [FromQuery] int? minRating)
+    public async Task<ActionResult<ApiResponse<List<AdminReviewDto>>>> GetReviews([FromQuery] string? search, [FromQuery] int? status, [FromQuery] int? minRating, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var reviews = await _locationService.GetAdminReviewsAsync(search, status, minRating);
+        var reviews = await _locationService.GetAdminReviewsAsync(search, status, minRating, page, pageSize);
         return Ok(new ApiResponse<List<AdminReviewDto>>
         {
             Code = 200,
             Success = true,
             Message = "Admin reviews retrieved successfully",
-            Data = reviews
+            Data = reviews.Items,
+            MetaData = reviews.MetaData
         });
     }
 

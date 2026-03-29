@@ -17,18 +17,20 @@ import {
   ADMIN_REVIEWS_ROUTE,
   ADMIN_USERS_ROUTE,
 } from '@apps/admin/constants';
+import AdminProfileModal from '@apps/admin/components/AdminProfileModal';
+import { LOGIN_ROUTE } from '@/constants';
 import { useGetUserInfo } from '@/shared/services/query';
+import type { IUserProfileResponse } from '@/shared/services/type';
+import tokenManager from '@utils/tokenManager';
 
 const MOBILE_BREAKPOINT = 992;
 const PRIMARY_COLOR = '#8c80cc';
 
 type AdminHeaderUser = {
-  username?: string;
-  tenDangNhap?: string;
-  hoTen?: string;
-  avatar?: string;
-  anhDaiDien?: string;
-};
+  userName?: string;
+  email?: string;
+  mediaLinkUrl?: string;
+} & Partial<IUserProfileResponse>;
 
 const navigationItems = [
   {
@@ -498,6 +500,7 @@ export default function AdminLayout({ title, subtitle }: AdminLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const { data: userInfo } = useGetUserInfo();
   const currentUser = (userInfo ?? {}) as AdminHeaderUser;
 
@@ -549,15 +552,28 @@ export default function AdminLayout({ title, subtitle }: AdminLayoutProps) {
     }
   };
 
+  const handleOpenProfileModal = () => {
+    setProfileDropdownOpen(false);
+    setProfileModalOpen(true);
+  };
+
+  const handleCloseProfileModal = () => {
+    setProfileModalOpen(false);
+  };
+
+  const handleLogout = () => {
+    tokenManager.removeAccessToken();
+    tokenManager.removeRefreshToken();
+    setProfileDropdownOpen(false);
+    setProfileModalOpen(false);
+    window.location.href = LOGIN_ROUTE;
+  };
+
   void title;
   void subtitle;
 
-  const displayName =
-    currentUser.username ||
-    currentUser.tenDangNhap ||
-    currentUser.hoTen ||
-    'Admin';
-  const avatarSrc = currentUser.avatar || currentUser.anhDaiDien;
+  const displayName = currentUser.userName || 'Admin';
+  const avatarSrc = currentUser.mediaLinkUrl;
   const avatarFallback = displayName
     .split(' ')
     .filter(Boolean)
@@ -587,8 +603,12 @@ export default function AdminLayout({ title, subtitle }: AdminLayoutProps) {
       </DropdownUserInfo>
 
       <DropdownActions>
-        <DropdownActionButton type="button">Thông tin cá nhân</DropdownActionButton>
-        <DropdownActionButton type="button">Đăng xuất</DropdownActionButton>
+        <DropdownActionButton type="button" onClick={handleOpenProfileModal}>
+          Thong tin ca nhan
+        </DropdownActionButton>
+        <DropdownActionButton type="button" onClick={handleLogout}>
+          Dang xuat
+        </DropdownActionButton>
       </DropdownActions>
     </DropdownPanel>
   );
@@ -717,6 +737,8 @@ export default function AdminLayout({ title, subtitle }: AdminLayoutProps) {
           </ContentCard>
         </ContentSurface>
       </ContentWrapper>
+      <AdminProfileModal open={profileModalOpen} onClose={handleCloseProfileModal} user={currentUser} />
     </LayoutWrapper>
   );
 }
+

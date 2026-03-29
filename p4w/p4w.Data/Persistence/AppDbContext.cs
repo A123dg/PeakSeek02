@@ -29,6 +29,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.HasKey(e => e.Id);
             entity.Property(e => e.UserName).HasMaxLength(100);
             entity.Property(e => e.Email).HasMaxLength(255);
+            entity.HasIndex(e => e.Email).IsUnique();
             entity.Property(e => e.GoogleUserId).HasMaxLength(255);
             entity.Property(e => e.Password).HasMaxLength(255);
 
@@ -44,6 +45,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.HasKey(e => e.Id);
             entity.Property(e => e.LocationName).HasMaxLength(255);
             entity.Property(e => e.Address).HasMaxLength(500);
+
+            entity.HasOne(d => d.Owner)
+                .WithMany(p => p.OwnedLocations)
+                .HasForeignKey(d => d.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Review>(entity =>

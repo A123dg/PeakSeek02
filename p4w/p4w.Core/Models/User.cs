@@ -8,6 +8,7 @@ namespace p4w.Core.Models
         {
             Comments = new HashSet<Comment>();
             MediaLinks = new HashSet<MediaLink>();
+            OwnedLocations = new HashSet<Location>();
             Reports = new HashSet<Report>();
             Reviews = new HashSet<Review>();
         }
@@ -28,8 +29,8 @@ namespace p4w.Core.Models
         public virtual Role Role { get; set; } = null!;
         public virtual ICollection<Comment> Comments { get; set; }
         public virtual ICollection<MediaLink> MediaLinks { get; set; }
+        public virtual ICollection<Location> OwnedLocations { get; set; }
         public virtual ICollection<Report> Reports { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
     }
 }
-

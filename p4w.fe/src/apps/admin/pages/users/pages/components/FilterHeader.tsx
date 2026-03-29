@@ -1,14 +1,24 @@
 import useDebounce from "@/shared/hooks/useDebounce";
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
-import { Button, Input, Select } from "antd";
-import { HeaderContent, WrapFilter } from "./style";
+import { SearchOutlined } from "@ant-design/icons";
+import { Input, Select } from "antd";
+import { ListPageFilters, ListPageHeader } from "@/apps/admin/components/listPageHeader";
+
+const ROLE_OPTIONS = [
+  { value: "8acea62a-e03e-47b9-89e5-9e4320085d7d", label: "Admin" },
+  { value: "f8d2ee70-5c68-4390-a18e-11943a86142a", label: "Nguoi dung" },
+];
+
+const STATUS_OPTIONS = [
+  { value: 1, label: "Hoat dong" },
+  { value: 0, label: "Khong hoat dong" },
+  { value: 3, label: "Khoa" },
+];
 
 interface FilterHeaderProps {
-  handleOpenModal: () => void;
   setFilter: (filter: any) => void;
 }
 
-export const FilterHeader = ({ handleOpenModal, setFilter }: FilterHeaderProps) => {
+export const FilterHeader = ({ setFilter }: FilterHeaderProps) => {
   const debounce = useDebounce();
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -16,56 +26,49 @@ export const FilterHeader = ({ handleOpenModal, setFilter }: FilterHeaderProps) 
     debounce(() => {
       setFilter((prev: any) => ({
         ...prev,
-        Keyword: value,
+        search: value,
         page: 1,
       }));
     });
   };
 
   return (
-    <HeaderContent>
-      <WrapFilter>
-         <Input
-          prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-          placeholder="Tìm theo tên / email..."
+    <ListPageHeader>
+      <ListPageFilters>
+        <Input
+          prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+          placeholder="Tim theo ten / email..."
           allowClear
           style={{ width: 260 }}
           onChange={handleTextChange}
         />
         <Select
-          placeholder="Vai trò"
+          placeholder="Vai tro"
           allowClear
           style={{ width: 150 }}
-          options={[
-            { value: 'admin', label: 'Admin' },
-            { value: 'user', label: 'Người dùng' },
-          ]}
+          options={ROLE_OPTIONS}
+          onChange={(value) =>
+            setFilter((prev: any) => ({
+              ...prev,
+              roleId: value,
+              page: 1,
+            }))
+          }
         />
         <Select
-          placeholder="Trạng thái"
+          placeholder="Trang thai"
           allowClear
           style={{ width: 150 }}
-          options={[
-            { value: 'active', label: 'Hoạt động' },
-            { value: 'pending', label: 'Chưa kích hoạt' },
-            { value: 'suspended', label: 'Khoá' },
-          ]}
+          options={STATUS_OPTIONS}
+          onChange={(value) =>
+            setFilter((prev: any) => ({
+              ...prev,
+              status: value,
+              page: 1,
+            }))
+          }
         />
-      </WrapFilter>
-
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        style={{
-          backgroundColor: '#8c80cc',
-          borderColor: '#8c80cc',
-          flexShrink: 0,
-          height: 36,
-        }}
-        onClick={handleOpenModal}
-      >
-        Thêm người dùng
-      </Button>
-    </HeaderContent>
+      </ListPageFilters>
+    </ListPageHeader>
   );
 };

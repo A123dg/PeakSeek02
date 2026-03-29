@@ -111,24 +111,39 @@ namespace p4w.Api.Controllers
 
         [Authorize(Policy = AuthPolicies.AdminOnly)]
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<List<AdminUserDto>>>> GetUsers([FromQuery] string? search, [FromQuery] Guid? roleId, [FromQuery] int? status)
+        public async Task<ActionResult<ApiResponse<List<UserResponseDto>>>> GetUsers([FromQuery] string? search, [FromQuery] Guid? roleId, [FromQuery] int? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var users = await _userService.GetUsersAsync(search, roleId, status);
-            return Ok(new ApiResponse<List<AdminUserDto>>
+            var users = await _userService.GetUsersAsync(search, roleId, status, page, pageSize);
+            return Ok(new ApiResponse<List<UserResponseDto>>
             {
                 Code = 200,
                 Success = true,
                 Message = "Users retrieved successfully",
-                Data = users
+                Data = users.Items,
+                MetaData = users.MetaData
+            });
+        }
+
+        [Authorize(Policy = AuthPolicies.AdminOnly)]
+        [HttpGet("{userId:guid}")]
+        public async Task<ActionResult<ApiResponse<UserResponseDto>>> GetUserById(Guid userId)
+        {
+            var user = await _userService.GetAdminUserByIdAsync(userId);
+            return Ok(new ApiResponse<UserResponseDto>
+            {
+                Code = 200,
+                Success = true,
+                Message = "User retrieved successfully",
+                Data = user
             });
         }
 
         [Authorize(Policy = AuthPolicies.AdminOnly)]
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<AdminUserDto>>> CreateUser([FromBody] AdminUpsertUserRequest request)
+        public async Task<ActionResult<ApiResponse<UserResponseDto>>> CreateUser([FromBody] AdminUpsertUserRequest request)
         {
             var user = await _userService.CreateAdminUserAsync(request);
-            return Ok(new ApiResponse<AdminUserDto>
+            return Ok(new ApiResponse<UserResponseDto>
             {
                 Code = 200,
                 Success = true,
@@ -139,10 +154,10 @@ namespace p4w.Api.Controllers
 
         [Authorize(Policy = AuthPolicies.AdminOnly)]
         [HttpPut("{userId:guid}")]
-        public async Task<ActionResult<ApiResponse<AdminUserDto>>> UpdateUser(Guid userId, [FromBody] AdminUpsertUserRequest request)
+        public async Task<ActionResult<ApiResponse<UserResponseDto>>> UpdateUser(Guid userId, [FromBody] AdminUpsertUserRequest request)
         {
             var user = await _userService.UpdateAdminUserAsync(userId, request);
-            return Ok(new ApiResponse<AdminUserDto>
+            return Ok(new ApiResponse<UserResponseDto>
             {
                 Code = 200,
                 Success = true,
@@ -153,10 +168,10 @@ namespace p4w.Api.Controllers
 
         [Authorize(Policy = AuthPolicies.AdminOnly)]
         [HttpPut("{userId:guid}/lock")]
-        public async Task<ActionResult<ApiResponse<AdminUserDto>>> LockUser(Guid userId)
+        public async Task<ActionResult<ApiResponse<UserResponseDto>>> LockUser(Guid userId)
         {
             var user = await _userService.LockUserAsync(userId);
-            return Ok(new ApiResponse<AdminUserDto>
+            return Ok(new ApiResponse<UserResponseDto>
             {
                 Code = 200,
                 Success = true,
@@ -164,6 +179,20 @@ namespace p4w.Api.Controllers
                 Data = user
             });
         }
+        [Authorize (Policy = AuthPolicies.AdminOnly)]
+        [HttpPut("{userId:guid}/unlock")]
+        public async Task<ActionResult<ApiResponse<UserResponseDto>>> UnlockUser(Guid userId)
+        {
+            var user = await _userService.UnlockUserAsync(userId);
+            return Ok(new ApiResponse<UserResponseDto>
+            {
+                Code = 200,
+                Success = true,
+                Message = "User unlocked successfully",
+                Data = user
+            });
+        }
+       
 
         private Guid GetCurrentUserId()
         {

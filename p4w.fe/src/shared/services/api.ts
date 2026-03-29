@@ -1,5 +1,7 @@
 import axiosClient from '@configs/axios';
 import tokenManager from '@utils/tokenManager';
+import type { IUpdateProfileRequest, IUserProfileResponse } from './type';
+import type { IResponse } from '@/shared/types/response.type';
 
 /** Lấy thông tin user */
 export const getUserInfo = () => {
@@ -8,4 +10,8 @@ export const getUserInfo = () => {
   
   const url = '/User/profile';
   return axiosClient.get(url);
+};
+
+export const updateProfile = (payload: IUpdateProfileRequest): Promise<IResponse<IUserProfileResponse>> => {
+  return axiosClient.put('/Auth/update-profile', payload);
 };

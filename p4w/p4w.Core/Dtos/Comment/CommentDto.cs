@@ -9,4 +9,5 @@ public class CommentDto
     public Guid? ParentId { get; set; }
     public string Content { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
+    public List<CommentDto> Children { get; set; } = [];
 }

@@ -5,6 +5,7 @@ using p4w.Core.Dtos.Location;
 using p4w.Core.Dtos.Review;
 using p4w.Core.Interfaces.Repositories.LocationRepo;
 using p4w.Core.Models;
+using p4w.Core.Paginations;
 using p4w.Data.Persistence;
 
 namespace p4w.Data.Repositories.Location;
@@ -18,8 +19,11 @@ public class LocationRepository : ILocationRepository
         _context = context;
     }
 
-    public async Task<List<LocationCardDto>> GetLocationsAsync(string? search, int? type)
+    public async Task<PagedResult<LocationCardDto>> GetLocationsAsync(string? search, int? type, int page, int pageSize)
     {
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+
         IQueryable<Core.Models.Location> query = _context.Locations
             .Include(x => x.Reviews)
             .Where(x => x.Status == LocationStatuses.Active);
@@ -35,8 +39,11 @@ public class LocationRepository : ILocationRepository
             query = query.Where(x => x.Type == type.Value);
         }
 
-        return await query
+        var total = await query.CountAsync();
+        var items = await query
             .OrderByDescending(x => x.Reviews.Where(r => r.Status == ReviewStatuses.Active).Any() ? x.Reviews.Where(r => r.Status == ReviewStatuses.Active).Max(r => r.CreatedAt) : DateTime.MinValue)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(x => new LocationCardDto
             {
                 Id = x.Id,
@@ -51,6 +58,18 @@ public class LocationRepository : ILocationRepository
                 ReviewCount = x.Reviews.Count(r => r.Status == ReviewStatuses.Active)
             })
             .ToListAsync();
+
+        return new PagedResult<LocationCardDto>
+        {
+            Items = items,
+            MetaData = new MetaData
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                TotalPage = total == 0 ? 0 : (int)Math.Ceiling(total / (double)pageSize)
+            }
+        };
     }
 
     public async Task<LocationDetailDto?> GetLocationDetailAsync(Guid locationId)
@@ -104,15 +123,23 @@ public class LocationRepository : ILocationRepository
         };
     }
 
-    public async Task<List<ReviewDto>> GetLocationReviewsAsync(Guid locationId)
+    public async Task<PagedResult<ReviewDto>> GetLocationReviewsAsync(Guid locationId, int page, int pageSize)
     {
-        return await _context.Reviews
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+
+        var query = _context.Reviews
             .Include(x => x.User)
                 .ThenInclude(x => x.MediaLinks)
                     .ThenInclude(x => x.Media)
             .Include(x => x.Comments)
             .Where(x => x.LocationId == locationId && x.Status == ReviewStatuses.Active)
-            .OrderByDescending(x => x.CreatedAt)
+            .OrderByDescending(x => x.CreatedAt);
+
+        var total = await query.CountAsync();
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(x => new ReviewDto
             {
                 Id = x.Id,
@@ -129,16 +156,30 @@ public class LocationRepository : ILocationRepository
                 CommentCount = x.Comments.Count(c => c.Status == CommentStatuses.Active)
             })
             .ToListAsync();
+
+        return new PagedResult<ReviewDto>
+        {
+            Items = items,
+            MetaData = new MetaData
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                TotalPage = total == 0 ? 0 : (int)Math.Ceiling(total / (double)pageSize)
+            }
+        };
     }
 
-    public async Task<List<CommentDto>> GetReviewCommentsAsync(Guid reviewId)
+    public async Task<PagedResult<CommentDto>> GetReviewCommentsAsync(Guid reviewId, int page, int pageSize)
     {
-        return await _context.Comments
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+
+        var allComments = await _context.Comments
             .Include(x => x.User)
                 .ThenInclude(x => x.MediaLinks)
                     .ThenInclude(x => x.Media)
             .Where(x => x.ReviewId == reviewId && x.Status == CommentStatuses.Active)
-            .OrderByDescending(x => x.CreatedAt)
             .Select(x => new CommentDto
             {
                 Id = x.Id,
@@ -154,6 +195,62 @@ public class LocationRepository : ILocationRepository
                 CreatedAt = x.CreatedAt
             })
             .ToListAsync();
+
+        var total = allComments.Count(x => x.ParentId == null);
+        var commentLookup = allComments
+            .Where(x => x.ParentId.HasValue)
+            .GroupBy(x => x.ParentId!.Value)
+            .ToDictionary(
+                x => x.Key,
+                x => x.OrderBy(comment => comment.CreatedAt).ToList());
+
+        var items = allComments
+            .Where(x => x.ParentId == null)
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        foreach (var comment in items)
+        {
+            PopulateCommentChildren(comment, commentLookup);
+        }
+
+        return new PagedResult<CommentDto>
+        {
+            Items = items,
+            MetaData = new MetaData
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                TotalPage = total == 0 ? 0 : (int)Math.Ceiling(total / (double)pageSize)
+            }
+        };
+    }
+
+    public async Task<CommentDto?> GetCommentDetailAsync(Guid commentId)
+    {
+        return await _context.Comments
+            .Include(x => x.User)
+                .ThenInclude(x => x.MediaLinks)
+                    .ThenInclude(x => x.Media)
+            .Where(x => x.Id == commentId && x.Status == CommentStatuses.Active)
+            .Select(x => new CommentDto
+            {
+                Id = x.Id,
+                UserId = x.UserId,
+                UserName = x.User.UserName,
+                AvatarUrl = x.User.MediaLinks
+                    .Where(m => m.EntityType == "avatar")
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => m.Media.Url)
+                    .FirstOrDefault() ?? string.Empty,
+                ParentId = x.ParentId,
+                Content = x.Content,
+                CreatedAt = x.CreatedAt
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Core.Models.Location?> GetLocationEntityAsync(Guid locationId)
@@ -210,15 +307,20 @@ public class LocationRepository : ILocationRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<AdminLocationDto>> GetAdminLocationsAsync(string? search, int? type, int? status)
+    public async Task<PagedResult<AdminLocationDto>> GetAdminLocationsAsync(string? search, int? type, int? status, int page, int pageSize)
     {
-        IQueryable<Core.Models.Location> query = _context.Locations;
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+
+        IQueryable<Core.Models.Location> query = _context.Locations
+            .Include(x => x.Owner);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             var normalizedSearch = search.Trim();
-            query = query.Where(x => x.LocationName.Contains(normalizedSearch) || x.Address.Contains(normalizedSearch));
-        }
+query = query.Where(x => 
+    EF.Functions.Collate(x.LocationName, "Latin1_General_CI_AI").Contains(normalizedSearch) || 
+    EF.Functions.Collate(x.Address, "Latin1_General_CI_AI").Contains(normalizedSearch));        }
 
         if (type.HasValue)
         {
@@ -230,11 +332,16 @@ public class LocationRepository : ILocationRepository
             query = query.Where(x => x.Status == status.Value);
         }
 
-        return await query
+        var total = await query.CountAsync();
+        var items = await query
             .OrderByDescending(x => x.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(x => new AdminLocationDto
             {
                 Id = x.Id,
+                OwnerId = x.OwnerId,
+                OwnerName = x.Owner != null ? x.Owner.UserName : null,
                 LocationName = x.LocationName,
                 Description = x.Description,
                 Address = x.Address,
@@ -254,10 +361,25 @@ public class LocationRepository : ILocationRepository
                                 : "inactive"
             })
             .ToListAsync();
+
+        return new PagedResult<AdminLocationDto>
+        {
+            Items = items,
+            MetaData = new MetaData
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                TotalPage = total == 0 ? 0 : (int)Math.Ceiling(total / (double)pageSize)
+            }
+        };
     }
 
-    public async Task<List<AdminReviewDto>> GetAdminReviewsAsync(string? search, int? status, int? minRating)
+    public async Task<PagedResult<AdminReviewDto>> GetAdminReviewsAsync(string? search, int? status, int? minRating, int page, int pageSize)
     {
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+
         IQueryable<Review> query = _context.Reviews
             .Include(x => x.User)
             .Include(x => x.Location);
@@ -278,8 +400,11 @@ public class LocationRepository : ILocationRepository
             query = query.Where(x => x.Rating >= minRating.Value);
         }
 
-        return await query
+        var total = await query.CountAsync();
+        var items = await query
             .OrderByDescending(x => x.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(x => new AdminReviewDto
             {
                 Id = x.Id,
@@ -294,6 +419,18 @@ public class LocationRepository : ILocationRepository
                 CreatedAt = x.CreatedAt
             })
             .ToListAsync();
+
+        return new PagedResult<AdminReviewDto>
+        {
+            Items = items,
+            MetaData = new MetaData
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                TotalPage = total == 0 ? 0 : (int)Math.Ceiling(total / (double)pageSize)
+            }
+        };
     }
 
     public async Task<AdminReviewDto?> GetAdminReviewDetailAsync(Guid reviewId)
@@ -333,10 +470,13 @@ public class LocationRepository : ILocationRepository
     public async Task<AdminLocationDto?> GetAdminLocationDetailAsync(Guid locationId)
     {
         return await _context.Locations
+            .Include(x => x.Owner)
             .Where(x => x.Id == locationId)
             .Select(x => new AdminLocationDto
             {
                 Id = x.Id,
+                OwnerId = x.OwnerId,
+                OwnerName = x.Owner != null ? x.Owner.UserName : null,
                 LocationName = x.LocationName,
                 Description = x.Description,
                 Address = x.Address,
@@ -356,5 +496,19 @@ public class LocationRepository : ILocationRepository
                                 : "inactive"
             })
             .FirstOrDefaultAsync();
+    }
+
+    private static void PopulateCommentChildren(CommentDto parent, IReadOnlyDictionary<Guid, List<CommentDto>> commentLookup)
+    {
+        if (!commentLookup.TryGetValue(parent.Id, out var children))
+        {
+            return;
+        }
+
+        parent.Children = children;
+        foreach (var child in children)
+        {
+            PopulateCommentChildren(child, commentLookup);
+        }
     }
 }

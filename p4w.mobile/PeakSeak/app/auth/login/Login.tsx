@@ -1,19 +1,131 @@
-// app/login.tsx
+import { useRouter } from "expo-router";
+import React from "react";
+import { Alert, SafeAreaView, StatusBar, StyleSheet, Text, View } from "react-native";
+import * as AuthSession from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
 
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Palette } from "@/components/app/palette";
+import { PrimaryButton } from "@/components/app/PrimaryButton";
+import { SocialButton } from "@/components/app/SocialButton";
+import { useAuth } from "@/contexts/AuthContext";
 
-// import { AuthInput } from '@/components/app/AuthInput';
-import { Palette } from '@/components/app/palette';
-// import { PrimaryButton } from '@/components/app/PrimaryButton';
-import { SocialButton } from '@/components/app/SocialButton';
-import { PrimaryButton } from '@/components/app/PrimaryButton';
+WebBrowser.maybeCompleteAuthSession();
+
+const googleClientIds = {
+  web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?.trim() || process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.trim(),
+};
+
+const expoProxyRedirectUri = "https://auth.expo.io/@na01041612/PeakSeak";
+
+const discovery = {
+  authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+  tokenEndpoint: "https://oauth2.googleapis.com/token",
+};
+
+const getGoogleConfigError = () => {
+  if (!googleClientIds.web) {
+    return "Thieu EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID hoac EXPO_PUBLIC_GOOGLE_CLIENT_ID.";
+  }
+  return null;
+};
+
+type GoogleLoginButtonProps = {
+  isLoading: boolean;
+  onGoogleToken: (idToken: string) => Promise<void>;
+};
+
+const GoogleLoginButton = ({ isLoading, onGoogleToken }: GoogleLoginButtonProps) => {
+  const router = useRouter();
+  const googleConfigError = getGoogleConfigError();
+
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: googleClientIds.web!,
+      redirectUri: expoProxyRedirectUri,
+      responseType: "id_token",
+      scopes: ["openid", "email", "profile"],
+      extraParams: {
+        nonce: "nonce123",
+      },
+    },
+    discovery
+  );
+
+  React.useEffect(() => {
+    console.log("redirectUri:", expoProxyRedirectUri);
+  }, []);
+
+  React.useEffect(() => {
+    const handleGoogleResponse = async () => {
+      if (response?.type !== "success") {
+        if (response?.type === "error") {
+          console.log("Google error:", JSON.stringify(response.error));
+        }
+        return;
+      }
+
+      console.log("response params:", JSON.stringify(response.params, null, 2));
+
+      const idToken = response.params?.id_token;
+      if (!idToken) {
+        Alert.alert("Dang nhap Google that bai", "Khong lay duoc idToken tu Google.");
+        return;
+      }
+
+      try {
+        await onGoogleToken(idToken);
+        router.replace("/(tabs)");
+      } catch (error) {
+        Alert.alert(
+          "Dang nhap Google that bai",
+          error instanceof Error ? error.message : "Co loi xay ra"
+        );
+      }
+    };
+
+    void handleGoogleResponse();
+  }, [onGoogleToken, response, router]);
+
+  const handleGoogleLogin = async () => {
+    try {
+      if (googleConfigError) {
+        Alert.alert("Cau hinh Google chua hop le", googleConfigError);
+        return;
+      }
+
+      if (!request) {
+        Alert.alert(
+          "Dang nhap Google chua san sang",
+          "Khong tao duoc OAuth request. Kiem tra lai Google client ID va redirect URI."
+        );
+        return;
+      }
+
+      await promptAsync();
+    } catch (error) {
+      Alert.alert(
+        "Dang nhap Google that bai",
+        error instanceof Error ? error.message : "Co loi xay ra"
+      );
+    }
+  };
+
+  return (
+    <SocialButton
+      label={isLoading ? "Dang xu ly..." : "Dang nhap voi Google"}
+      icon={require("../../../assets/google/google_icon.png")}
+      onPress={
+        googleConfigError
+          ? () => Alert.alert("Cau hinh Google chua hop le", googleConfigError)
+          : handleGoogleLogin
+      }
+    />
+  );
+};
 
 export const Login = () => {
   const router = useRouter();
-  // const [email, setEmail] = useState('');
-  // const [password, setPassword] = useState('');
+  const { loginWithGoogle, isLoading } = useAuth();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -21,59 +133,22 @@ export const Login = () => {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.brand}>PeakSeek</Text>
-          <Text style={styles.tagline}>Tìm địa điểm học tập và làm việc lý tưởng</Text>
+          <Text style={styles.tagline}>Tim dia diem hoc tap va lam viec ly tuong</Text>
         </View>
 
-        {/* <View style={styles.card}> */}
-        {/* <Text style={styles.title}>Dang nhap</Text> */}
-        {/* <AuthInput
-              label="Email"
-              placeholder="ban@example.com"
-              value={email}
-              onChangeText={setEmail}
-            />
-            <AuthInput
-              label="Mat khau"
-              placeholder="Nhap mat khau"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry */}
-        {/* /> */}
-        {/* <PrimaryButton label="Dang nhap" onPress={() => router.replace('/(tabs)')} /> */}
-
-        {/* <Text style={styles.orText}>Hoac</Text> */}
         <View style={styles.buttonContainer}>
-          <SocialButton
-            label="Đăng nhập với Google"
-            icon={require('../../../assets/google/google_icon.png')}
-            onPress={() => router.replace('/(tabs)')}
-          />
-          <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 8 }}>
-            <Text style={styles.footerText}>
-              Chưa có tài khoản?{' '}
-            </Text>
-
-            
-            {/* <Text style={styles.link} onPress={() => router.push('/auth/register/Register')}>
-                Đăng ký
-              </Text> */}
-          </View>
-          <SocialButton
-              label="Đăng kí với Google"
-
-              icon={require('../../../assets/google/google_icon.png')}
-              onPress={() => router.replace('/auth/register/Register')}
-            />
-          <PrimaryButton 
-            label="Đăng nhập với tư cách khách"
-            variant='ghost'
-            onPress={()=> router.push('/(tabs)')}
+          <GoogleLoginButton isLoading={isLoading} onGoogleToken={loginWithGoogle} />
+          <PrimaryButton
+            label="Dang nhap voi tu cach khach"
+            variant="ghost"
+            onPress={() => router.push("/(tabs)")}
           />
         </View>
       </View>
     </SafeAreaView>
   );
-}
+};
+
 export default Login;
 
 const styles = StyleSheet.create({
@@ -87,23 +162,20 @@ const styles = StyleSheet.create({
     paddingTop: 28,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
     marginTop: 40,
   },
   brand: {
-    justifyContent: 'center',
-    display: 'flex',
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Palette.text,
   },
   tagline: {
-    justifyContent: 'center',
-    display: 'flex',
     marginTop: 6,
     fontSize: 14,
     color: Palette.subtext,
+    textAlign: "center",
   },
   card: {
     backgroundColor: Palette.card,
@@ -114,31 +186,17 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Palette.text,
     marginBottom: 12,
   },
-  orText: {
-    textAlign: 'center',
-    color: Palette.subtext,
-    marginVertical: 14,
-  },
-  footerText: {
-    textDecorationLine: 'underline',
-    textAlign: 'center',
-    // marginTop: 10,
-    color: Palette.subtext,
-  },
-  link: {
-    color: Palette.primary,
-    fontWeight: '600',
+  ghostButton: {
+    marginTop: 12,
   },
   buttonContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    
-    marginTop: 180,
+    display: "flex",
+    flexDirection: "column",
+    marginTop: 32,
     gap: 16,
   },
 });
-

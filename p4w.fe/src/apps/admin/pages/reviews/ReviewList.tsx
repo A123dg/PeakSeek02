@@ -1,231 +1,116 @@
-import { useMemo, useState } from 'react';
-import {
-  Badge,
-  Button,
-  Input,
-  Select,
-  Space,
-  Tag,
-  Tooltip,
-  message,
-} from 'antd';
-import {
-  DownloadOutlined,
-  EyeOutlined,
-  FilterOutlined,
-  StopOutlined,
-} from '@ant-design/icons';
-import TableWithPagination from '@shared/components/tables/table-with-pagination';
-import { default as ReviewFormModal, type ReviewFormData } from './ReviewFormModal';
+import { DownloadOutlined, FilterOutlined, SearchOutlined } from "@ant-design/icons";
+import { Button, Input, Select } from "antd";
 
-type ReviewStatus = 'pending' | 'approved' | 'rejected';
+import { ListPageFilters, ListPageHeader } from "@apps/admin/components/listPageHeader";
+import { PageContainer } from "@/shared/components/PageContainer";
+import useFilter from "@/shared/hooks/useFilter";
+import TableWithPagination from "@shared/components/tables/table-with-pagination";
+import ReviewFormModal from "./ReviewFormModal";
+import { useReviewActions } from "./pages/hooks/useActions";
+import { useReviewColumns } from "./pages/hooks/useColumn";
+import { useReviewData } from "./pages/hooks/useData";
 
-interface ReviewRow {
-  id: number;
-  user: string;
-  location: string;
-  rating: number;
-  content: string;
-  status: ReviewStatus;
-  createdAt: string;
-}
-
-const statusMeta: Record<
-  ReviewStatus,
-  { label: string; color: string; bg: string }
-> = {
-  pending: { label: 'Chờ duyệt', color: '#f59e0b', bg: '#fffbeb' },
-  approved: { label: 'Đã duyệt', color: '#16a34a', bg: '#ecfdf3' },
-  rejected: { label: 'Từ chối', color: '#dc2626', bg: '#fef2f2' },
+const initialFilter = {
+  page: 1,
+  pageSize: 10,
 };
 
-const reviewRows: ReviewRow[] = [];
-
 export default function ReviewList() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedReview, setSelectedReview] = useState<ReviewRow | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleOpenReviewModal = (record: ReviewRow) => {
-    setSelectedReview(record);
-    setModalOpen(true);
-  };
-
-  const handleModalCancel = () => {
-    setModalOpen(false);
-    setSelectedReview(null);
-  };
-
-  const handleModalSubmit = async (_values: ReviewFormData) => {
-    try {
-      void _values;
-      setLoading(true);
-      message.success('Cập nhật đánh giá thành công');
-      handleModalCancel();
-    } catch {
-      message.error('Có lỗi xảy ra');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleHideReview = (_record: ReviewRow) => {
-    void _record;
-    message.success('Ẩn đánh giá thành công');
-  };
-
-  const columns = useMemo(
-    () => [
-      {
-        title: 'Người dùng',
-        dataIndex: 'user',
-        key: 'user',
-      },
-      {
-        title: 'Địa điểm',
-        dataIndex: 'location',
-        key: 'location',
-      },
-      {
-        title: 'Sao đánh giá',
-        dataIndex: 'rating',
-        key: 'rating',
-        width: 120,
-        render: (value: number) => (
-          <Space>
-            <span>{value.toFixed(1)}</span>
-            <Badge color="#fbbf24" />
-          </Space>
-        ),
-      },
-      {
-        title: 'Nội dung',
-        dataIndex: 'content',
-        key: 'content',
-        ellipsis: true,
-      },
-      {
-        title: 'Trạng thái',
-        dataIndex: 'status',
-        key: 'status',
-        width: 140,
-        render: (status: ReviewStatus) => {
-          const meta = statusMeta[status];
-          return (
-            <Tag
-              color={meta.bg}
-              style={{
-                color: meta.color,
-                borderRadius: 999,
-                border: 'none',
-                paddingInline: 12,
-              }}
-            >
-              {meta.label}
-            </Tag>
-          );
-        },
-      },
-      {
-        title: 'Thời gian tạo',
-        dataIndex: 'createdAt',
-        key: 'createdAt',
-        width: 140,
-      },
-      {
-        title: 'Thao tác',
-        key: 'action',
-        width: 160,
-        render: (_: unknown, record: ReviewRow) => (
-          <Space size={4}>
-            <Tooltip title="Xem chi tiết">
-              <Button
-                size="small"
-                type="text"
-                shape="circle"
-                icon={<EyeOutlined />}
-                onClick={() => handleOpenReviewModal(record)}
-              />
-            </Tooltip>
-            <Tooltip title="Ẩn đánh giá">
-              <Button
-                size="small"
-                type="text"
-                danger
-                shape="circle"
-                icon={<StopOutlined />}
-                onClick={() => handleHideReview(record)}
-              />
-            </Tooltip>
-          </Space>
-        ),
-      },
-    ],
-    []
-  );
+  const { setFilter, filter, pagination } = useFilter(initialFilter);
+  const { data, total, isLoading } = useReviewData(filter);
+  const {
+    modalOpen,
+    selectedReview,
+    loading,
+    handleOpenReviewModal,
+    handleModalCancel,
+    handleModalSubmit,
+    handleHideReview,
+  } = useReviewActions();
+  const { columns } = useReviewColumns({ handleOpenReviewModal, handleHideReview });
 
   return (
     <div style={{ fontSize: 14 }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginBottom: 16,
-          gap: 12,
-          padding: '12px 16px',
-          backgroundColor: '#f5f3ff',
-          borderRadius: 12,
-        }}
+      <PageContainer
+        breadcrumbItems={[{ title: "Danh sach danh gia" }]}
+        showNavButtons={false}
+        showBreadcrumb={true}
       >
-        <Space size={12}>
-          <Input.Search
-            placeholder="Tìm theo nội dung / người dùng..."
-            allowClear
-            style={{ width: 260 }}
-          />
-          <Select
-            placeholder="Sao đánh giá"
-            allowClear
-            style={{ width: 160 }}
-            options={[
-              { value: '5', label: '5 sao' },
-              { value: '4', label: '4 sao trở lên' },
-              { value: '3', label: '3 sao trở lên' },
-            ]}
-          />
-          <Select
-            placeholder="Trạng thái"
-            allowClear
-            style={{ width: 160 }}
-            options={[
-              { value: 'approved', label: 'Đã duyệt' },
-              { value: 'pending', label: 'Chờ duyệt' },
-              { value: 'rejected', label: 'Từ chối' },
-            ]}
-          />
-          <Button icon={<FilterOutlined />} />
-        </Space>
+        <ListPageHeader>
+          <ListPageFilters>
+            <Input
+              prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+              placeholder="Tim theo noi dung / nguoi dung..."
+              allowClear
+              style={{ width: 260 }}
+              onChange={(e) =>
+                setFilter((prev: typeof initialFilter) => ({
+                  ...prev,
+                  page: 1,
+                  search: e.target.value,
+                }))
+              }
+            />
+            <Select
+              placeholder="Sao danh gia"
+              allowClear
+              style={{ width: 160 }}
+              options={[
+                { value: 5, label: "5 sao" },
+                { value: 4, label: "4 sao tro len" },
+                { value: 3, label: "3 sao tro len" },
+              ]}
+              onChange={(value) =>
+                setFilter((prev: typeof initialFilter) => ({
+                  ...prev,
+                  page: 1,
+                  minRating: value as number | undefined,
+                }))
+              }
+            />
+            <Select
+              placeholder="Trang thai"
+              allowClear
+              style={{ width: 160 }}
+              options={[
+                { value: 1, label: "Dang hien thi" },
+                { value: 0, label: "Da an" },
+              ]}
+              onChange={(value) =>
+                setFilter((prev: typeof initialFilter) => ({
+                  ...prev,
+                  page: 1,
+                  status: value as number | undefined,
+                }))
+              }
+            />
+            <Button icon={<FilterOutlined />} />
+          </ListPageFilters>
 
-        <Button
-          type="primary"
-          icon={<DownloadOutlined />}
-          style={{ backgroundColor: '#8c80cc', borderColor: '#8c80cc' }}
-        >
-          Xuất báo cáo
-        </Button>
-      </div>
+          <Button
+            type="primary"
+            icon={<DownloadOutlined />}
+            style={{ backgroundColor: "#8c80cc", borderColor: "#8c80cc", height: 36 }}
+          >
+            Xuat bao cao
+          </Button>
+        </ListPageHeader>
 
-      <TableWithPagination
-        columns={columns as never}
-        dataSource={reviewRows}
-        rowKey="id"
-        bodyHeight="calc(100vh - 260px)"
-      />
+        <TableWithPagination
+          columns={columns as never}
+          dataSource={data}
+          loading={isLoading || loading}
+          pagination={pagination(total)}
+          paginationBackground="#fff"
+          rowKey="id"
+          scroll={{ y: "var(--table-body-height-default)" }}
+        />
+      </PageContainer>
 
       <ReviewFormModal
         open={modalOpen}
         mode="view"
-        data={selectedReview || undefined}
+        data={selectedReview ?? undefined}
         loading={loading}
         onCancel={handleModalCancel}
         onSubmit={handleModalSubmit}

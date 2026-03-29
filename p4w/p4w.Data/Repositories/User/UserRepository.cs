@@ -5,6 +5,7 @@ using p4w.Core.Dtos.User;
 using p4w.Core.Exceptions;
 using p4w.Core.Interfaces.Repositories.Auth;
 using p4w.Core.Models;
+using p4w.Core.Paginations;
 using p4w.Data.Persistence;
 public class UserRepository : IUserRepository {
     private readonly AppDbContext _context;
@@ -26,6 +27,7 @@ public class UserRepository : IUserRepository {
             .Include(u => u.Role)
             .Include(u => u.MediaLinks)
             .ThenInclude(m => m.Media)
+            .Include(u => u.OwnedLocations)
             .FirstOrDefaultAsync(u => u.GoogleUserId == googleUserId && u.Status != UserStatuses.Inactive);
         // if (user == null) {
         //     throw new AppException("User not found", ErrorCodes.NotFound, StatusCodes.Status404NotFound);
@@ -52,6 +54,7 @@ public class UserRepository : IUserRepository {
             .Include(u => u.Role)
             .Include(u => u.MediaLinks)
             .ThenInclude(m => m.Media)
+            .Include(u => u.OwnedLocations)
             .FirstOrDefaultAsync(u => u.Email == email && u.Status != UserStatuses.Inactive);
         // if (user == null) {
         //     throw new AppException("User not found", ErrorCodes.NotFound, StatusCodes.Status404NotFound);
@@ -63,7 +66,21 @@ public class UserRepository : IUserRepository {
             .Include(u => u.Role)
             .Include(u => u.MediaLinks)
             .ThenInclude(m => m.Media)
+            .Include(u => u.OwnedLocations)
             .FirstOrDefaultAsync(u => u.Id == id && u.Status == UserStatuses.Active);
+        if (user == null) {
+            throw new AppException("User not found", ErrorCodes.NotFound, StatusCodes.Status404NotFound);
+        }
+        return user;
+    }
+
+    public async Task<User> GetAdminUserByIdAsync(Guid id) {
+        User? user = await _context.Users
+            .Include(u => u.Role)
+            .Include(u => u.MediaLinks)
+            .ThenInclude(m => m.Media)
+            .Include(u => u.OwnedLocations)
+            .FirstOrDefaultAsync(u => u.Id == id && u.Status != UserStatuses.Inactive);
         if (user == null) {
             throw new AppException("User not found", ErrorCodes.NotFound, StatusCodes.Status404NotFound);
         }
@@ -131,17 +148,22 @@ public class UserRepository : IUserRepository {
         };
     }
 
-    public async Task<List<AdminUserDto>> GetUsersAsync(string? search, Guid? roleId, int? status)
+    public async Task<PagedResult<UserResponseDto>> GetUsersAsync(string? search, Guid? roleId, int? status, int page, int pageSize)
     {
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+
         IQueryable<User> query = _context.Users
             .Include(x => x.Role)
+            .Include(x => x.OwnedLocations)
             .Where(x => x.Status != UserStatuses.Inactive);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             var normalizedSearch = search.Trim();
-            query = query.Where(x => x.UserName.Contains(normalizedSearch) || x.Email.Contains(normalizedSearch));
-        }
+query = query.Where(x => 
+    EF.Functions.Collate(x.UserName, "Latin1_General_CI_AI").Contains(normalizedSearch) || 
+    EF.Functions.Collate(x.Email, "Latin1_General_CI_AI").Contains(normalizedSearch));        }
 
         if (roleId.HasValue)
         {
@@ -153,9 +175,12 @@ public class UserRepository : IUserRepository {
             query = query.Where(x => x.Status == status.Value);
         }
 
-        return await query
+        var total = await query.CountAsync();
+        var items = await query
             .OrderByDescending(x => x.CreatedAt)
-            .Select(x => new AdminUserDto
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => new UserResponseDto
             {
                 Id = x.Id,
                 UserName = x.UserName,
@@ -168,8 +193,45 @@ public class UserRepository : IUserRepository {
                     : x.Status == UserStatuses.Locked
                         ? "locked"
                         : "inactive",
-                CreatedAt = x.CreatedAt
+                DateOfBirth = x.DateOfBirth,
+                MediaLinkUrl = x.MediaLinks
+                    .Where(m => m.EntityType == "avatar")
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => m.Media.Url)
+                    .FirstOrDefault() ?? string.Empty,
+                CreatedAt = x.CreatedAt,
+                OwnedLocations = x.OwnedLocations
+                    .OrderBy(l => l.LocationName)
+                    .Select(l => new OwnedLocationDto
+                    {
+                        Id = l.Id,
+                        LocationName = l.LocationName,
+                        Address = l.Address,
+                        Status = l.Status,
+                        StatusName = l.Status == LocationStatuses.Pending
+                            ? "pending"
+                            : l.Status == LocationStatuses.Approved
+                                ? "approved"
+                                : l.Status == LocationStatuses.Rejected
+                                    ? "rejected"
+                                    : l.Status == LocationStatuses.Active
+                                        ? "active"
+                                        : "inactive"
+                    })
+                    .ToList()
             })
             .ToListAsync();
+
+        return new PagedResult<UserResponseDto>
+        {
+            Items = items,
+            MetaData = new MetaData
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                TotalPage = total == 0 ? 0 : (int)Math.Ceiling(total / (double)pageSize)
+            }
+        };
     }
 }

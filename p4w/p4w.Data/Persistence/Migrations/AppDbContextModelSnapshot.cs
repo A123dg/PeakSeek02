@@ -69,6 +69,9 @@ namespace p4w.Data.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("AddressLink")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<TimeSpan?>("ClosingHours")
                         .HasColumnType("time");
 
@@ -83,6 +86,9 @@ namespace p4w.Data.Persistence.Migrations
                     b.Property<TimeSpan?>("OpeningHours")
                         .HasColumnType("time");
 
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -90,6 +96,8 @@ namespace p4w.Data.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Location", (string)null);
                 });
@@ -294,6 +302,9 @@ namespace p4w.Data.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.HasIndex("RoleId");
 
                     b.ToTable("User", (string)null);
@@ -323,6 +334,16 @@ namespace p4w.Data.Persistence.Migrations
                     b.Navigation("Review");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("p4w.Core.Models.Location", b =>
+                {
+                    b.HasOne("p4w.Core.Models.User", "Owner")
+                        .WithMany("OwnedLocations")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("p4w.Core.Models.MediaLink", b =>
@@ -415,6 +436,8 @@ namespace p4w.Data.Persistence.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("MediaLinks");
+
+                    b.Navigation("OwnedLocations");
 
                     b.Navigation("Reports");
 

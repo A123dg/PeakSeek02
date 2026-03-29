@@ -4,6 +4,7 @@ using p4w.Core.Dtos.Report;
 using p4w.Core.Exceptions;
 using p4w.Core.Interfaces.Repositories.Report;
 using p4w.Core.Interfaces.Services.Report;
+using p4w.Core.Paginations;
 
 namespace p4w.Service.Services.Report;
 
@@ -56,9 +57,9 @@ public class ReportService : IReportService
         return await GetReportDetailAsync(report.Id);
     }
 
-    public async Task<List<ReportDto>> GetReportsAsync(string? targetType, int? status, string? search)
+    public async Task<PagedResult<ReportDto>> GetReportsAsync(string? targetType, int? status, string? search, int page, int pageSize)
     {
-        return await _reportRepository.GetReportsAsync(targetType, status, search);
+        return await _reportRepository.GetReportsAsync(targetType, status, search, page, pageSize);
     }
 
     public async Task<ReportDto> GetReportDetailAsync(Guid reportId)

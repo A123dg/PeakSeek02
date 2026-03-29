@@ -1,6 +1,7 @@
 using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 using p4w.Core.Constants.Statuses;
+using p4w.Core.Dtos.User;
 using p4w.Api.Dtos.Auth;
 using p4w.Core.Interfaces.Repositories.Auth;
 using p4w.Core.Interfaces.Repositories.MediaRepo;
@@ -158,6 +159,62 @@ public class AuthService : IAuthService
         Data = true
     };
 }
+
+    public async Task<ApiResponse<UserProfileDto>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+            throw new Exception("User not found");
+
+        if (string.IsNullOrWhiteSpace(request.UserName))
+            throw new Exception("User name is required");
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+            throw new Exception("Email is required");
+
+        var exists = await _userRepository.ExistsByEmailAsync(request.Email, userId);
+        if (exists)
+            throw new Exception("Email already in use");
+
+        user.UserName = request.UserName.Trim();
+        user.Email = request.Email.Trim();
+        user.DateOfBirth = request.DateOfBirth;
+
+        if (!string.IsNullOrWhiteSpace(request.Password))
+        {
+            user.Password = PasswordHelper.HashPassword(request.Password);
+        }
+
+        await _userRepository.UpdateAsync(user);
+
+        user = await _userRepository.GetUserByIdAsync(userId);
+
+        var profile = new UserProfileDto
+        {
+            Id = user.Id,
+            RoleId = user.RoleId,
+            GoogleUserId = user.GoogleUserId,
+            Email = user.Email,
+            UserName = user.UserName,
+            DateOfBirth = user.DateOfBirth,
+            Password = user.Password,
+            Status = user.Status,
+            RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
+            CreatedAt = user.CreatedAt,
+            MediaLinkUrl = user.MediaLinks
+                .Where(m => m.EntityType == "avatar")
+                .OrderBy(m => m.SortOrder)
+                .Select(m => m.Media.Url)
+                .FirstOrDefault() ?? string.Empty
+        };
+
+        return new ApiResponse<UserProfileDto>
+        {
+            Success = true,
+            Message = "Profile updated successfully",
+            Data = profile
+        };
+    }
 
     private async Task<ApiResponse<LoginResponse>> BuildLoginResponseAsync(User user)
     {

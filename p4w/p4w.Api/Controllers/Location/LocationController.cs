@@ -22,15 +22,16 @@ public class LocationController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<LocationCardDto>>>> GetLocations([FromQuery] string? search, [FromQuery] int? type)
+    public async Task<ActionResult<ApiResponse<List<LocationCardDto>>>> GetLocations([FromQuery] string? search, [FromQuery] int? type, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var locations = await _locationService.GetLocationsAsync(search, type);
+        var locations = await _locationService.GetLocationsAsync(search, type, page, pageSize);
         return Ok(new ApiResponse<List<LocationCardDto>>
         {
             Code = 200,
             Success = true,
             Message = "Locations retrieved successfully",
-            Data = locations
+            Data = locations.Items,
+            MetaData = locations.MetaData
         });
     }
 
@@ -48,15 +49,32 @@ public class LocationController : ControllerBase
     }
 
     [HttpGet("{locationId:guid}/reviews")]
-    public async Task<ActionResult<ApiResponse<List<ReviewDto>>>> GetLocationReviews(Guid locationId)
+    public async Task<ActionResult<ApiResponse<List<ReviewDto>>>> GetLocationReviews(Guid locationId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var reviews = await _locationService.GetLocationReviewsAsync(locationId);
+        var reviews = await _locationService.GetLocationReviewsAsync(locationId, page, pageSize);
         return Ok(new ApiResponse<List<ReviewDto>>
         {
             Code = 200,
             Success = true,
             Message = "Location reviews retrieved successfully",
-            Data = reviews
+            Data = reviews.Items,
+            MetaData = reviews.MetaData
+        });
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<AdminLocationDto>>> CreateLocation([FromBody] CreateLocationRequest request)
+    {
+        var userId = GetCurrentUserId();
+        var location = await _locationService.CreateLocationAsync(userId, request);
+
+        return Ok(new ApiResponse<AdminLocationDto>
+        {
+            Code = 200,
+            Success = true,
+            Message = "Location created and pending admin approval",
+            Data = location
         });
     }
 
@@ -77,15 +95,16 @@ public class LocationController : ControllerBase
     }
 
     [HttpGet("reviews/{reviewId:guid}/comments")]
-    public async Task<ActionResult<ApiResponse<List<CommentDto>>>> GetReviewComments(Guid reviewId)
+    public async Task<ActionResult<ApiResponse<List<CommentDto>>>> GetReviewComments(Guid reviewId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var comments = await _locationService.GetReviewCommentsAsync(reviewId);
+        var comments = await _locationService.GetReviewCommentsAsync(reviewId, page, pageSize);
         return Ok(new ApiResponse<List<CommentDto>>
         {
             Code = 200,
             Success = true,
             Message = "Review comments retrieved successfully",
-            Data = comments
+            Data = comments.Items,
+            MetaData = comments.MetaData
         });
     }
 

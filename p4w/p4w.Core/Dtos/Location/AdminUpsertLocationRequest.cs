@@ -2,6 +2,7 @@ namespace p4w.Core.Dtos.Location;
 
 public class AdminUpsertLocationRequest
 {
+    public Guid? OwnerId { get; set; }
     public string LocationName { get; set; } = null!;
     public string? Description { get; set; }
     public string Address { get; set; } = null!;

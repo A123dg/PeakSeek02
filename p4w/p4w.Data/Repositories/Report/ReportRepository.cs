@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using p4w.Core.Constants.Statuses;
 using p4w.Core.Dtos.Report;
 using p4w.Core.Interfaces.Repositories.Report;
+using p4w.Core.Paginations;
 using p4w.Data.Persistence;
 
 namespace p4w.Data.Repositories.Report;
@@ -28,8 +29,11 @@ public class ReportRepository : IReportRepository
             .FirstOrDefaultAsync(x => x.Id == reportId);
     }
 
-    public async Task<List<ReportDto>> GetReportsAsync(string? targetType, int? status, string? search)
+    public async Task<PagedResult<ReportDto>> GetReportsAsync(string? targetType, int? status, string? search, int page, int pageSize)
     {
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+
         IQueryable<Core.Models.Report> query = _context.Reports
             .Include(x => x.User)
             .Where(x => x.Status != ReportStatuses.Inactive)
@@ -51,8 +55,23 @@ public class ReportRepository : IReportRepository
             query = query.Where(x => x.User.UserName.Contains(normalizedSearch) || x.Reason.Contains(normalizedSearch) || x.TargetId.Contains(normalizedSearch));
         }
 
-        var reports = await query.ToListAsync();
-        return reports.Select(MapToDto).ToList();
+        var total = await query.CountAsync();
+        var reports = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<ReportDto>
+        {
+            Items = reports.Select(MapToDto).ToList(),
+            MetaData = new MetaData
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = total,
+                TotalPage = total == 0 ? 0 : (int)Math.Ceiling(total / (double)pageSize)
+            }
+        };
     }
 
     public async Task<ReportDto?> GetReportDetailAsync(Guid reportId)

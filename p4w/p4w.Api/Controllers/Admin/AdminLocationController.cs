@@ -20,15 +20,16 @@ public class AdminLocationController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<AdminLocationDto>>>> GetLocations([FromQuery] string? search, [FromQuery] int? type, [FromQuery] int? status)
+    public async Task<ActionResult<ApiResponse<List<AdminLocationDto>>>> GetLocations([FromQuery] string? search, [FromQuery] int? type, [FromQuery] int? status, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var locations = await _locationService.GetAdminLocationsAsync(search, type, status);
+        var locations = await _locationService.GetAdminLocationsAsync(search, type, status, page, pageSize);
         return Ok(new ApiResponse<List<AdminLocationDto>>
         {
             Code = 200,
             Success = true,
             Message = "Admin locations retrieved successfully",
-            Data = locations
+            Data = locations.Items,
+            MetaData = locations.MetaData
         });
     }
 

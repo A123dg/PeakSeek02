@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-export const HeaderContent = styled.div`
+export const ListPageHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -11,12 +11,12 @@ export const HeaderContent = styled.div`
   border-radius: 12px;
 `;
 
-export const WrapFilter = styled.div`
+export const ListPageFilters = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 
-  /* Đồng nhất chiều cao tất cả các ô input/select về 36px */
   .ant-input-affix-wrapper,
   .ant-input-search .ant-input-affix-wrapper,
   .ant-select-selector {

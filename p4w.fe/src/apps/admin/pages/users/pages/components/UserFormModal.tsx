@@ -1,133 +1,186 @@
-import { useEffect } from 'react';
-import { Form, Input, Select } from 'antd';
-import ModalForm from '@shared/components/modal/ModalForm';
-// import dayjs from 'dayjs';
+import { Avatar, Col, Modal, Row, Tag } from "antd";
+import dayjs from "dayjs";
 
-type UserFormModalMode = 'add' | 'edit';
+import type { IUserResponse } from "../../services/type";
+import {
+  AvatarShell,
+  FieldLabel,
+  FieldValue,
+  FieldWrap,
+  HeaderHint,
+  HeaderMain,
+  HeaderRow,
+  HeaderSubtitle,
+  HeaderText,
+  HeaderTitle,
+  ModalContent,
+  ModalHeader,
+  ModalWrapper,
+  SectionCard,
+  SectionStack,
+  SectionTitle,
+  modalBodyStyles,
+} from "@/apps/admin/components/styled";
 
-export interface UserFormData {
-  id?: number;
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-  role?: 'user' | 'admin' | 'moderator';
-  status?: 'active' | 'inactive' | 'banned';
-}
+type UserFormModalMode = "view";
 
 interface UserFormModalProps {
   open: boolean;
   mode: UserFormModalMode;
-  data?: UserFormData;
+  data?: IUserResponse;
   loading?: boolean;
   onCancel: () => void;
-  onSubmit: (values: UserFormData) => void | Promise<void>;
+  onSubmit: (values: IUserResponse) => void | Promise<void>;
 }
 
-export function UserFormModal({
-  open,
-  mode,
-  data,
-  loading,
-  onCancel,
-  onSubmit,
-}: UserFormModalProps) {
-  const [form] = Form.useForm();
+const renderValue = (value?: string | number | null) => {
+  if (value === undefined || value === null || value === "") {
+    return "Chua cap nhat";
+  }
 
-  useEffect(() => {
-    if (open) {
-      if (mode === 'edit' && data) {
-        form.setFieldsValue({
-          name: data.name,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-          role: data.role,
-          status: data.status,
-        });
-      } else {
-        form.resetFields();
-      }
-    }
-  }, [open, mode, data, form]);
+  return String(value);
+};
 
-  const handleSubmit = async (values: any) => {
-    const formData: UserFormData = {
-      ...values,
-      ...(mode === 'edit' && data?.id && { id: data.id }),
-    };
-    await onSubmit(formData);
-  };
+const formatDate = (value?: string) => {
+  if (!value) {
+    return "Chua cap nhat";
+  }
 
-  const formItems = [
-    {
-      label: 'Tên người dùng',
-      name: 'name',
-      component: <Input placeholder="Nhập tên người dùng" />,
-      rules: [{ required: true, message: 'Vui lòng nhập tên' }],
-      span: 24,
-    },
-    {
-      label: 'Email',
-      name: 'email',
-      component: <Input type="email" placeholder="Nhập email" />,
-      rules: [
-        { required: true, message: 'Vui lòng nhập email' },
-        { type: 'email', message: 'Email không hợp lệ' },
-      ],
-      span: 24,
-    },
-    {
-      label: 'Số điện thoại',
-      name: 'phoneNumber',
-      component: <Input placeholder="Nhập số điện thoại" />,
-      span: 24,
-    },
-    {
-      label: 'Vai trò',
-      name: 'role',
-      component: (
-        <Select
-          placeholder="Chọn vai trò"
-          options={[
-            { value: 'user', label: 'Người dùng' },
-            { value: 'admin', label: 'Quản trị viên' },
-            { value: 'moderator', label: 'Kiểm duyệt viên' },
-          ]}
-        />
-      ),
-      rules: [{ required: true, message: 'Vui lòng chọn vai trò' }],
-      span: 24,
-    },
-    {
-      label: 'Trạng thái',
-      name: 'status',
-      component: (
-        <Select
-          options={[
-            { value: 'active', label: 'Hoạt động' },
-            { value: 'inactive', label: 'Không hoạt động' },
-            { value: 'banned', label: 'Bị cấm' },
-          ]}
-        />
-      ),
-      rules: [{ required: true, message: 'Vui lòng chọn trạng thái' }],
-      span: 24,
-    },
-  ];
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed.format("DD/MM/YYYY") : value;
+};
+
+const formatStatus = (value?: string) => {
+  switch (value) {
+    case "active":
+      return { label: "Hoat dong", color: "#16a34a", bg: "#ecfdf3" };
+    case "locked":
+      return { label: "Khoa", color: "#dc2626", bg: "#fef2f2" };
+    default:
+      return { label: "Khong hoat dong", color: "#f59e0b", bg: "#fffbeb" };
+  }
+};
+
+const InfoField = ({ label, value }: { label: string; value?: string | number | null }) => (
+  <FieldWrap>
+    <FieldLabel>{label}</FieldLabel>
+    <FieldValue>{renderValue(value)}</FieldValue>
+  </FieldWrap>
+);
+
+export function UserFormModal({ open, mode, data, loading, onCancel, onSubmit }: UserFormModalProps) {
+  void mode;
+  void loading;
+  void onSubmit;
+
+  const displayName = data?.userName || "User";
+  const avatarSrc = data?.mediaLinkUrl;
+  const avatarFallback = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+  const statusMeta = formatStatus(data?.statusName);
 
   return (
-    <ModalForm
-      open={open}
-      title={mode === 'add' ? 'Thêm người dùng mới' : 'Chỉnh sửa người dùng'}
-      loading={loading}
-      onCancel={onCancel}
-      onOk={() => form.submit()}
-      formItems={formItems}
-      form={form}
-      onFinish={handleSubmit}
-      okText={mode === 'add' ? 'Thêm mới' : 'Lưu thay đổi'}
-      cancelText="Hủy"
-      width={700}
-    />
+    <Modal open={open} onCancel={onCancel} footer={null} width={1100} centered styles={modalBodyStyles}>
+      <ModalWrapper>
+        <ModalHeader>
+          <HeaderRow>
+            <HeaderMain>
+              <AvatarShell>
+                <Avatar
+                  size={110}
+                  src={avatarSrc}
+                  style={{
+                    background: "#f4f1ff",
+                    color: "var(--primary, #8c80cc)",
+                    border: "4px solid rgba(255,255,255,0.92)",
+                    boxShadow: "0 12px 26px rgba(15, 23, 42, 0.18)",
+                  }}
+                >
+                  {!avatarSrc ? avatarFallback : null}
+                </Avatar>
+              </AvatarShell>
+
+              <HeaderText>
+                <HeaderTitle>{displayName}</HeaderTitle>
+                <HeaderSubtitle>{renderValue(data?.roleName)}</HeaderSubtitle>
+                <HeaderHint>ID: {renderValue(data?.id)}</HeaderHint>
+              </HeaderText>
+            </HeaderMain>
+          </HeaderRow>
+        </ModalHeader>
+
+        <ModalContent>
+          <SectionStack>
+            <SectionCard>
+              <SectionTitle>Thong tin nguoi dung</SectionTitle>
+              <Row gutter={[48, 8]}>
+                <Col xs={24} md={12}>
+                  <InfoField label="User name" value={data?.userName} />
+                  <InfoField label="Email" value={data?.email} />
+                  <InfoField label="Role id" value={data?.roleId} />
+                  <InfoField label="Vai tro" value={data?.roleName} />
+                </Col>
+                <Col xs={24} md={12}>
+                  <InfoField label="Ngay sinh" value={formatDate(data?.dateOfBirth)} />
+                  <FieldWrap>
+                    <FieldLabel>Trang thai</FieldLabel>
+                    <FieldValue>
+                      <Tag
+                        color={statusMeta.bg}
+                        style={{
+                          color: statusMeta.color,
+                          borderRadius: 999,
+                          border: "none",
+                          paddingInline: 12,
+                        }}
+                      >
+                        {statusMeta.label}
+                      </Tag>
+                    </FieldValue>
+                  </FieldWrap>
+                </Col>
+              </Row>
+            </SectionCard>
+
+            <SectionCard>
+              <SectionTitle>Dia diem so huu</SectionTitle>
+              {data?.ownedLocations?.length ? (
+                <Row gutter={[24, 16]}>
+                  {data.ownedLocations.map((location) => (
+                    <Col xs={24} md={12} key={location.id}>
+                      <FieldWrap style={{ marginBottom: 0 }}>
+                        <FieldLabel>{renderValue(location.locationName)}</FieldLabel>
+                        <FieldValue>{renderValue(location.address)}</FieldValue>
+                        <div style={{ marginTop: 8 }}>
+                          <Tag
+                            color="#f3f4f6"
+                            style={{
+                              color: "#4b5563",
+                              borderRadius: 999,
+                              border: "none",
+                              paddingInline: 12,
+                            }}
+                          >
+                            {renderValue(location.statusName)}
+                          </Tag>
+                        </div>
+                      </FieldWrap>
+                    </Col>
+                  ))}
+                </Row>
+              ) : (
+                <FieldValue>Chua co dia diem so huu</FieldValue>
+              )}
+            </SectionCard>
+          </SectionStack>
+        </ModalContent>
+      </ModalWrapper>
+    </Modal>
   );
 }
 

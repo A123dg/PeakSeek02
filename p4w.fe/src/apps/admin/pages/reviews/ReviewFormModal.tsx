@@ -1,16 +1,18 @@
-import { useEffect } from 'react';
-import { Form, Input, Select, Rate } from 'antd';
-import ModalForm from '@shared/components/modal/ModalForm';
+import { useEffect } from "react";
+import { Form, Input, Rate, Select } from "antd";
 
-type ReviewFormModalMode = 'view' | 'edit' | 'approve';
+import ModalForm from "@shared/components/modal/ModalForm";
+
+type ReviewFormModalMode = "view" | "edit" | "approve";
 
 export interface ReviewFormData {
-  id?: number;
+  id?: string;
   user?: string;
   location?: string;
   rating?: number;
   content?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  createdAt?: string;
+  status: "active" | "inactive";
 }
 
 interface ReviewFormModalProps {
@@ -40,6 +42,7 @@ export function ReviewFormModal({
           location: data.location,
           rating: data.rating,
           content: data.content,
+          createdAt: data.createdAt,
           status: data.status,
         });
       } else {
@@ -48,53 +51,58 @@ export function ReviewFormModal({
     }
   }, [open, data, form]);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: ReviewFormData) => {
     const formData: ReviewFormData = {
       ...values,
-      ...(data?.id && { id: data.id }),
+      ...(data?.id ? { id: data.id } : {}),
     };
     await onSubmit(formData);
   };
 
-  const isViewMode = mode === 'view';
+  const isViewMode = mode === "view";
 
   const formItems = [
     {
-      label: 'Người dùng',
-      name: 'user',
+      label: "Nguoi dung",
+      name: "user",
       component: <Input disabled />,
       span: 12,
     },
     {
-      label: 'Địa điểm',
-      name: 'location',
+      label: "Dia diem",
+      name: "location",
       component: <Input disabled />,
       span: 12,
     },
     {
-      label: 'Sao đánh giá',
-      name: 'rating',
+      label: "Sao danh gia",
+      name: "rating",
       component: <Rate disabled={isViewMode} />,
       span: 12,
     },
     {
-      label: 'Trạng thái',
-      name: 'status',
+      label: "Thoi gian tao",
+      name: "createdAt",
+      component: <Input disabled />,
+      span: 12,
+    },
+    {
+      label: "Trang thai",
+      name: "status",
       component: (
         <Select
           disabled={isViewMode}
           options={[
-            { value: 'pending', label: 'Chờ duyệt' },
-            { value: 'approved', label: 'Đã duyệt' },
-            { value: 'rejected', label: 'Từ chối' },
+            { value: "active", label: "Dang hien thi" },
+            { value: "inactive", label: "Da an" },
           ]}
         />
       ),
       span: 12,
     },
     {
-      label: 'Nội dung',
-      name: 'content',
+      label: "Noi dung",
+      name: "content",
       span: 24,
       component: <Input.TextArea rows={4} disabled={isViewMode} />,
     },
@@ -104,20 +112,16 @@ export function ReviewFormModal({
     <ModalForm
       open={open}
       title={
-        mode === 'view'
-          ? 'Chi tiết đánh giá'
-          : mode === 'approve'
-            ? 'Duyệt đánh giá'
-            : 'Chỉnh sửa đánh giá'
+        mode === "view" ? "Chi tiet danh gia" : mode === "approve" ? "Duyet danh gia" : "Chinh sua danh gia"
       }
       loading={loading}
       onCancel={onCancel}
-      onOk={() => form.submit()}
+      onOk={isViewMode ? onCancel : () => form.submit()}
       formItems={formItems}
       form={form}
       onFinish={handleSubmit}
-      okText={isViewMode ? 'Đóng' : 'Lưu thay đổi'}
-      cancelText={isViewMode ? undefined : 'Hủy'}
+      okText={isViewMode ? "Dong" : "Luu thay doi"}
+      cancelText={isViewMode ? undefined : "Huy"}
       width={700}
     />
   );

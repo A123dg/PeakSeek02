@@ -1,5 +1,5 @@
 import axios  from 'axios';
-import { App } from 'antd';
+import { notification } from 'antd';
 import type { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios'
 import type { IResponse } from '../shared/types/response.type';
 import tokenManager from '@utils/tokenManager';
@@ -25,13 +25,12 @@ const handleRequestError = (error: AxiosError): Promise<AxiosError> => {
 
 const handleResponse = (response: AxiosResponse) => {
   //Trả thẳng về data trong trường hợp là phương thức là GET
-  if (response.config.method === 'get') return response.data.data;
+  if (response.config.method === 'get') return response.data;
 
   return response.data;
 };
 
 const handleResponseError = async (error: AxiosError<IResponse<any>>) => {
-  const { notification } = App.useApp();
   console.log('Request error: ', { error });
 
   const originalRequest = error.config as IOriginRequest;

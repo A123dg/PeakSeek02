@@ -1,24 +1,30 @@
 import axios from 'axios';
-import axiosClient from '@configs/axios';
+
 import type { IOriginRequest } from '@configs/axios';
-import tokenManager from './tokenManager';
+import axiosClient from '@configs/axios';
 import { LOGIN_ROUTE, REFRESH_TOKEN_URL } from '@/constants';
+import tokenManager from './tokenManager';
 
 interface IFailedQueue {
-  resolve: Promise<any>;
-  reject: Promise<any>;
+  resolve: (token: string | null) => void;
+  reject: (error: Error) => void;
 }
 
-// for multiple requests
 let isRefreshing = false;
 let failedQueue: IFailedQueue[] = [];
 
-const processQueue = (error: Error | null, token = null) => {
-  failedQueue.forEach((prom: any) => {
+const clearAuthAndRedirect = () => {
+  tokenManager.removeAccessToken();
+  tokenManager.removeRefreshToken();
+  window.location.href = LOGIN_ROUTE;
+};
+
+const processQueue = (error: Error | null, token: string | null = null) => {
+  failedQueue.forEach((promise) => {
     if (error) {
-      prom.reject(error);
+      promise.reject(error);
     } else {
-      prom.resolve(token);
+      promise.resolve(token);
     }
   });
 
@@ -27,63 +33,72 @@ const processQueue = (error: Error | null, token = null) => {
 
 export const handleRefreshToken = async (originalRequest: IOriginRequest) => {
   if (isRefreshing) {
-    return new Promise(function (resolve: any, reject: any) {
+    return new Promise((resolve: (token: string | null) => void, reject: (error: Error) => void) => {
       failedQueue.push({ resolve, reject });
     })
       .then((token) => {
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = 'Bearer ' + token;
+        if (token && originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
         }
+
         return axiosClient(originalRequest);
       })
-      .catch((err) => err);
+      .catch((error) => Promise.reject(error));
   }
 
   originalRequest._retry = true;
   isRefreshing = true;
 
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     const refreshToken = tokenManager.getRefreshToken();
 
-    if (refreshToken) {
-      axios
-        .post(
-          `${import.meta.env.VITE_API_URL}${REFRESH_TOKEN_URL}`,
-          JSON.stringify({ refreshToken }),
-          {
-            headers: { 'Content-Type': 'application/json' },
-          }
-        )
-        .then(({ data }:any) => {
-          //Trường hợp refresh token hết hạn đẩy về trang đăng nhập
-          if (!data?.data) {
-            tokenManager.removeAccessToken();
-            tokenManager.removeRefreshToken();
-            window.location.href = LOGIN_ROUTE;
-            return;
-          }
-
-          tokenManager.setAccessToken(data.data.accessToken);
-          tokenManager.setRefreshToken(data.data.refreshToken);
-
-          if (originalRequest.headers) {
-            originalRequest.headers['Authorization'] = 'Bearer ' + data.data.accessToken;
-          }
-
-          processQueue(null, data.data.accessToken);
-          resolve(axiosClient(originalRequest));
-        })
-        .then(() => {
-          isRefreshing = false;
-        })
-        .catch((err:any) => {
-          console.log('refresh token err: ', err);
-          tokenManager.removeAccessToken();
-          tokenManager.removeRefreshToken();
-          window.location.href = LOGIN_ROUTE;
-          processQueue(err, null);
-          reject(err);
-        });
+    if (!refreshToken) {
+      const error = new Error('Refresh token is missing');
+      processQueue(error, null);
+      clearAuthAndRedirect();
+      isRefreshing = false;
+      reject(error);
+      return;
     }
+
+    axios
+      .post(
+        `${import.meta.env.VITE_API_URL}${REFRESH_TOKEN_URL}`,
+        { refreshToken },
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
+      .then(({ data }: any) => {
+        const nextAccessToken = data?.data?.accessToken;
+        const nextRefreshToken = data?.data?.refreshToken;
+
+        if (!nextAccessToken || !nextRefreshToken) {
+          const error = new Error('Refresh token response is invalid');
+          processQueue(error, null);
+          clearAuthAndRedirect();
+          reject(error);
+          return;
+        }
+
+        tokenManager.setAccessToken(nextAccessToken);
+        tokenManager.setRefreshToken(nextRefreshToken);
+
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${nextAccessToken}`;
+        }
+
+        processQueue(null, nextAccessToken);
+        resolve(axiosClient(originalRequest));
+      })
+      .catch((error: any) => {
+        console.log('refresh token err: ', error);
+        processQueue(error instanceof Error ? error : new Error('Refresh token failed'), null);
+        clearAuthAndRedirect();
+        reject(error);
+      })
+      .finally(() => {
+        isRefreshing = false;
+      });
   });
 };

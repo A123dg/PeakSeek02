@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 const string CorsPolicyName = "FrontendCors";
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddApplicationContainer(builder.Configuration);

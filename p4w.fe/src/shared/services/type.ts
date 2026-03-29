@@ -44,3 +44,36 @@ export interface IUser {
   thuMuc: string;
   menuIds: number[];
 }
+
+export interface IUserProfileResponse {
+  id: string;
+  roleId: string;
+  googleUserId?: string;
+  userName: string;
+  email: string;
+  dateOfBirth?: string;
+  password?: string;
+  status: number;
+  refreshTokenExpiryTime?: string;
+  createdAt: string;
+  mediaLinkUrl?: string;
+  recentLocation?: {
+    id: string;
+    locationName?: string;
+    address?: string;
+  } | null;
+  ownedLocations?: Array<{
+    id: string;
+    locationName?: string;
+    address?: string;
+    status?: number;
+    statusName?: string;
+  }>;
+}
+
+export interface IUpdateProfileRequest {
+  userName: string;
+  email: string;
+  dateOfBirth?: string;
+  password?: string;
+}
