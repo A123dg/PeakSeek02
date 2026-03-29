@@ -55,7 +55,8 @@ public class AuthController : ControllerBase
             ?? Environment.GetEnvironmentVariable("Authentication__Google__ClientId")
             ?? throw new InvalidOperationException("Google ClientId is missing.");
 
-        var callbackUri = BuildGoogleCallbackUri(redirectUri);
+        var effectiveRedirectUri = ResolveGoogleRedirectUri(redirectUri);
+        var callbackUri = BuildGoogleCallbackUri(effectiveRedirectUri);
         var authUrl = QueryHelpers.AddQueryString(
             "https://accounts.google.com/o/oauth2/v2/auth",
             new Dictionary<string, string?>
@@ -74,14 +75,16 @@ public class AuthController : ControllerBase
     [HttpGet("google-callback")]
     public async Task<IActionResult> GoogleCallbackAsync([FromQuery] string? code, [FromQuery] string? error = null, [FromQuery] string? redirectUri = null)
     {
+        var effectiveRedirectUri = ResolveGoogleRedirectUri(redirectUri);
+
         if (!string.IsNullOrWhiteSpace(error))
         {
-            return BuildGoogleRedirectResult(redirectUri, success: false, message: error);
+            return BuildGoogleRedirectResult(effectiveRedirectUri, success: false, message: error);
         }
 
         if (string.IsNullOrWhiteSpace(code))
         {
-            return BuildGoogleRedirectResult(redirectUri, success: false, message: "missing_code");
+            return BuildGoogleRedirectResult(effectiveRedirectUri, success: false, message: "missing_code");
         }
 
         var clientId = _configuration["Authentication:Google:ClientId"]
@@ -92,7 +95,7 @@ public class AuthController : ControllerBase
             ?? Environment.GetEnvironmentVariable("Authentication__Google__ClientSecret")
             ?? throw new InvalidOperationException("Google ClientSecret is missing.");
 
-        var callbackUri = BuildGoogleCallbackUri(redirectUri);
+        var callbackUri = BuildGoogleCallbackUri(effectiveRedirectUri);
         var httpClient = _httpClientFactory.CreateClient();
 
         using var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token")
@@ -113,7 +116,7 @@ public class AuthController : ControllerBase
 
         if (!tokenResponse.IsSuccessStatusCode)
         {
-            return BuildGoogleRedirectResult(redirectUri, success: false, message: "google_token_exchange_failed");
+            return BuildGoogleRedirectResult(effectiveRedirectUri, success: false, message: "google_token_exchange_failed");
         }
 
         var tokenPayload = JsonSerializer.Deserialize<GoogleTokenResponse>(tokenJson, new JsonSerializerOptions
@@ -123,30 +126,30 @@ public class AuthController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(tokenPayload?.IdToken))
         {
-            return BuildGoogleRedirectResult(redirectUri, success: false, message: "missing_id_token");
+            return BuildGoogleRedirectResult(effectiveRedirectUri, success: false, message: "missing_id_token");
         }
 
         var loginResponse = await _authService.LoginWithGoogleAsync(tokenPayload.IdToken);
 
-        if (string.IsNullOrWhiteSpace(redirectUri))
+        if (string.IsNullOrWhiteSpace(effectiveRedirectUri))
         {
             return Ok(loginResponse);
         }
 
         if (!loginResponse.Success || loginResponse.Data == null)
         {
-            return BuildGoogleRedirectResult(redirectUri, success: false, message: loginResponse.Message ?? "login_failed");
+            return BuildGoogleRedirectResult(effectiveRedirectUri, success: false, message: loginResponse.Message ?? "login_failed");
         }
 
         var finalRedirect = QueryHelpers.AddQueryString(
-            redirectUri,
+            effectiveRedirectUri,
             new Dictionary<string, string?>
             {
                 ["success"] = "true",
-                ["accessToken"] = loginResponse.Data.accessToken,
-                ["refreshToken"] = loginResponse.Data.refreshToken,
-                ["expiresAt"] = loginResponse.Data.expiresAt?.ToString("O"),
-                ["refreshTokenExpiryTime"] = loginResponse.Data.RefreshTokenExpiryTime?.ToString("O")
+                ["accessToken"] = string.IsNullOrWhiteSpace(loginResponse.Data.accessToken) ? null : loginResponse.Data.accessToken,
+                ["refreshToken"] = string.IsNullOrWhiteSpace(loginResponse.Data.refreshToken) ? null : loginResponse.Data.refreshToken,
+                ["expiresAt"] = loginResponse.Data.expiresAt.ToString("O"),
+                ["refreshTokenExpiryTime"] = loginResponse.Data.RefreshTokenExpiryTime.ToString("O")
             });
 
         return Redirect(finalRedirect);
@@ -229,12 +232,43 @@ public class AuthController : ControllerBase
 
     private string BuildGoogleCallbackUri(string? redirectUri)
     {
-        return Url.ActionLink(
-            action: nameof(GoogleCallbackAsync),
-            controller: "Auth",
-            values: new { redirectUri },
-            protocol: Request.Scheme)
-            ?? throw new InvalidOperationException("Cannot build Google callback URL.");
+        var callbackBaseUrl = ResolveGoogleCallbackBaseUrl();
+        var callbackUri = $"{callbackBaseUrl}/api/Auth/google-callback";
+        return QueryHelpers.AddQueryString(
+            callbackUri,
+            new Dictionary<string, string?>
+            {
+                ["redirectUri"] = redirectUri
+            });
+    }
+
+    private string ResolveGoogleCallbackBaseUrl()
+    {
+        var configuredBaseUrl = _configuration["Authentication:Google:CallbackBaseUrl"]
+            ?? Environment.GetEnvironmentVariable("Authentication__Google__CallbackBaseUrl");
+
+        if (!string.IsNullOrWhiteSpace(configuredBaseUrl))
+        {
+            return configuredBaseUrl.TrimEnd('/');
+        }
+
+        if (!Request.Host.HasValue)
+        {
+            throw new InvalidOperationException("Cannot build Google callback URL.");
+        }
+
+        return $"{Request.Scheme}://{Request.Host}{Request.PathBase}".TrimEnd('/');
+    }
+
+    private string? ResolveGoogleRedirectUri(string? redirectUri)
+    {
+        if (!string.IsNullOrWhiteSpace(redirectUri))
+        {
+            return redirectUri;
+        }
+
+        return _configuration["Authentication:Google:RedirectUri"]
+            ?? Environment.GetEnvironmentVariable("Authentication__Google__RedirectUri");
     }
 
     private IActionResult BuildGoogleRedirectResult(string? redirectUri, bool success, string message)
