@@ -349,6 +349,11 @@ query = query.Where(x =>
                 Type = x.Type,
                 OpeningHours = x.OpeningHours.HasValue ? x.OpeningHours.Value.ToString(@"hh\:mm\:ss") : null,
                 ClosingHours = x.ClosingHours.HasValue ? x.ClosingHours.Value.ToString(@"hh\:mm\:ss") : null,
+                MediaLinkUrls = _context.MediaLinks
+                    .Where(m => m.EntityType == "location" && m.EntityId == x.Id)
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => m.Media.Url)
+                    .ToList(),
                 Status = x.Status,
                 StatusName = x.Status == LocationStatuses.Pending
                     ? "pending"
@@ -461,6 +466,47 @@ query = query.Where(x =>
         await _context.SaveChangesAsync();
     }
 
+    public async Task AddLocationMediaAsync(Guid ownerId, Guid locationId, IEnumerable<string> mediaUrls)
+    {
+        var normalizedUrls = mediaUrls
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Distinct()
+            .ToList();
+
+        if (normalizedUrls.Count == 0)
+        {
+            return;
+        }
+
+        var mediaLinks = normalizedUrls.Select((url, index) =>
+        {
+            var mediaId = Guid.NewGuid();
+            return new MediaLink
+            {
+                Id = Guid.NewGuid(),
+                UserId = ownerId,
+                EntityType = "location",
+                EntityId = locationId,
+                MediaType = "image",
+                SortOrder = index,
+                MediaId = mediaId,
+                Media = new Media
+                {
+                    Id = mediaId,
+                    Url = url,
+                    MimeType = "image/jpeg",
+                    Size = 0,
+                    Status = LocationStatuses.Active,
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
+        }).ToList();
+
+        _context.MediaLinks.AddRange(mediaLinks);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task UpdateLocationAsync(Core.Models.Location location)
     {
         _context.Locations.Update(location);
@@ -484,6 +530,11 @@ query = query.Where(x =>
                 Type = x.Type,
                 OpeningHours = x.OpeningHours.HasValue ? x.OpeningHours.Value.ToString(@"hh\:mm\:ss") : null,
                 ClosingHours = x.ClosingHours.HasValue ? x.ClosingHours.Value.ToString(@"hh\:mm\:ss") : null,
+                MediaLinkUrls = _context.MediaLinks
+                    .Where(m => m.EntityType == "location" && m.EntityId == x.Id)
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => m.Media.Url)
+                    .ToList(),
                 Status = x.Status,
                 StatusName = x.Status == LocationStatuses.Pending
                     ? "pending"

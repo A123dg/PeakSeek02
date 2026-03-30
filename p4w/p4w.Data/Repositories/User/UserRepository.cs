@@ -199,7 +199,6 @@ query = query.Where(x =>
                     .OrderBy(m => m.SortOrder)
                     .Select(m => m.Media.Url)
                     .FirstOrDefault() ?? string.Empty,
-                CreatedAt = x.CreatedAt,
                 OwnedLocations = x.OwnedLocations
                     .OrderBy(l => l.LocationName)
                     .Select(l => new OwnedLocationDto

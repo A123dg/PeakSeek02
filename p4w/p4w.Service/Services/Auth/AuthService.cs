@@ -236,7 +236,6 @@ public class AuthService : IAuthService
             Password = user.Password,
             Status = user.Status,
             RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
-            CreatedAt = user.CreatedAt,
             MediaLinkUrl = user.MediaLinks
                 .Where(m => m.EntityType == "avatar")
                 .OrderBy(m => m.SortOrder)

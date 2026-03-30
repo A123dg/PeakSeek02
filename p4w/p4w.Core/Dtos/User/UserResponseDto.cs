@@ -11,6 +11,5 @@ public class UserResponseDto
     public string StatusName { get; set; } = null!;
     public DateTime? DateOfBirth { get; set; }
     public string MediaLinkUrl { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
     public List<OwnedLocationDto> OwnedLocations { get; set; } = [];
 }

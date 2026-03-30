@@ -11,8 +11,6 @@ public class UserProfileDto
     public string? Password { get; set; }
     public int Status { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }
-    public DateTime CreatedAt { get; set; }
     public string MediaLinkUrl { get; set; } = string.Empty;
     public RecentLocationDto? RecentLocation { get; set; }
-    public List<OwnedLocationDto>? OwnedLocations { get; set; } = [];
 }

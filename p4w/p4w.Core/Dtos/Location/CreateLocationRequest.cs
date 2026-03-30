@@ -9,4 +9,5 @@ public class CreateLocationRequest
     public string? OpeningHours { get; set; }
     public string? ClosingHours { get; set; }
     public int Type { get; set; }
+    public List<string> MediaLinkUrls { get; set; } = [];
 }

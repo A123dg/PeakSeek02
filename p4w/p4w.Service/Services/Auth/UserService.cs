@@ -52,32 +52,12 @@ namespace p4w.Core.Interfaces.Services.Auth
         Password = user.Password,
         Status = user.Status,
         RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
-        CreatedAt = user.CreatedAt,
         MediaLinkUrl = user.MediaLinks
             .Where(m => m.EntityType == "avatar")
             .OrderBy(m => m.SortOrder)
             .Select(m => m.Media.Url)
             .FirstOrDefault() ?? "",
-        RecentLocation = recentLocation,
-        OwnedLocations = user.OwnedLocations
-            .OrderBy(x => x.LocationName)
-            .Select(x => new OwnedLocationDto
-            {
-                Id = x.Id,
-                LocationName = x.LocationName,
-                Address = x.Address,
-                Status = x.Status,
-                StatusName = x.Status == LocationStatuses.Pending
-                    ? "pending"
-                    : x.Status == LocationStatuses.Approved
-                        ? "approved"
-                        : x.Status == LocationStatuses.Rejected
-                            ? "rejected"
-                            : x.Status == LocationStatuses.Active
-                                ? "active"
-                                : "inactive"
-            })
-            .ToList()
+        RecentLocation = recentLocation
     };
 }
 
@@ -211,7 +191,6 @@ namespace p4w.Core.Interfaces.Services.Auth
                     .OrderBy(m => m.SortOrder)
                     .Select(m => m.Media.Url)
                     .FirstOrDefault() ?? string.Empty,
-                CreatedAt = user.CreatedAt,
                 OwnedLocations = user.OwnedLocations
                     .OrderBy(x => x.LocationName)
                     .Select(x => new OwnedLocationDto

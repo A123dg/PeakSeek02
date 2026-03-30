@@ -12,6 +12,7 @@ public class AdminLocationDto
     public int Type { get; set; }
     public string? OpeningHours { get; set; }
     public string? ClosingHours { get; set; }
+    public List<string> MediaLinkUrls { get; set; } = [];
     public int Status { get; set; }
     public string StatusName { get; set; } = null!;
 }
