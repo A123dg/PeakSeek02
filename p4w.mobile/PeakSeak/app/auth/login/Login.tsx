@@ -1,90 +1,34 @@
 import { useRouter } from "expo-router";
 import React from "react";
 import { Alert, SafeAreaView, StatusBar, StyleSheet, Text, View } from "react-native";
-import * as AuthSession from "expo-auth-session";
+import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 
 import { Palette } from "@/components/app/palette";
 import { PrimaryButton } from "@/components/app/PrimaryButton";
 import { SocialButton } from "@/components/app/SocialButton";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL, type LoginResponse } from "@/services/api";
 
 WebBrowser.maybeCompleteAuthSession();
 
-const googleClientIds = {
-  web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?.trim() || process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.trim(),
-};
-
-const expoProxyRedirectUri = "https://auth.expo.io/@na01041612/PeakSeak";
-
-const discovery = {
-  authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
-  tokenEndpoint: "https://oauth2.googleapis.com/token",
-};
+const backendGoogleLoginUrl = `${API_BASE_URL}/Auth/google-login`;
+const mobileRedirectUri = Linking.createURL("/auth/login");
 
 const getGoogleConfigError = () => {
-  if (!googleClientIds.web) {
-    return "Thieu EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID hoac EXPO_PUBLIC_GOOGLE_CLIENT_ID.";
+  if (!API_BASE_URL) {
+    return "Thieu EXPO_PUBLIC_API_URL.";
   }
   return null;
 };
 
 type GoogleLoginButtonProps = {
   isLoading: boolean;
-  onGoogleToken: (idToken: string) => Promise<void>;
+  onGoogleLoginRedirect: (redirectUrl: string) => Promise<void>;
 };
 
-const GoogleLoginButton = ({ isLoading, onGoogleToken }: GoogleLoginButtonProps) => {
-  const router = useRouter();
+const GoogleLoginButton = ({ isLoading, onGoogleLoginRedirect }: GoogleLoginButtonProps) => {
   const googleConfigError = getGoogleConfigError();
-
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
-    {
-      clientId: googleClientIds.web!,
-      redirectUri: expoProxyRedirectUri,
-      responseType: "id_token",
-      scopes: ["openid", "email", "profile"],
-      extraParams: {
-        nonce: "nonce123",
-      },
-    },
-    discovery
-  );
-
-  React.useEffect(() => {
-    console.log("redirectUri:", expoProxyRedirectUri);
-  }, []);
-
-  React.useEffect(() => {
-    const handleGoogleResponse = async () => {
-      if (response?.type !== "success") {
-        if (response?.type === "error") {
-          console.log("Google error:", JSON.stringify(response.error));
-        }
-        return;
-      }
-
-      console.log("response params:", JSON.stringify(response.params, null, 2));
-
-      const idToken = response.params?.id_token;
-      if (!idToken) {
-        Alert.alert("Dang nhap Google that bai", "Khong lay duoc idToken tu Google.");
-        return;
-      }
-
-      try {
-        await onGoogleToken(idToken);
-        router.replace("/(tabs)");
-      } catch (error) {
-        Alert.alert(
-          "Dang nhap Google that bai",
-          error instanceof Error ? error.message : "Co loi xay ra"
-        );
-      }
-    };
-
-    void handleGoogleResponse();
-  }, [onGoogleToken, response, router]);
 
   const handleGoogleLogin = async () => {
     try {
@@ -93,15 +37,19 @@ const GoogleLoginButton = ({ isLoading, onGoogleToken }: GoogleLoginButtonProps)
         return;
       }
 
-      if (!request) {
-        Alert.alert(
-          "Dang nhap Google chua san sang",
-          "Khong tao duoc OAuth request. Kiem tra lai Google client ID va redirect URI."
-        );
+      const authUrl = `${backendGoogleLoginUrl}?redirectUri=${encodeURIComponent(mobileRedirectUri)}`;
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, mobileRedirectUri);
+
+      if (result.type === "success" && result.url) {
+        await onGoogleLoginRedirect(result.url);
         return;
       }
 
-      await promptAsync();
+      if (result.type === "cancel") {
+        return;
+      }
+
+      Alert.alert("Dang nhap Google that bai", "Khong nhan duoc phan hoi redirect tu backend.");
     } catch (error) {
       Alert.alert(
         "Dang nhap Google that bai",
@@ -125,7 +73,66 @@ const GoogleLoginButton = ({ isLoading, onGoogleToken }: GoogleLoginButtonProps)
 
 export const Login = () => {
   const router = useRouter();
-  const { loginWithGoogle, isLoading } = useAuth();
+  const { applyLoginResponse, isLoading } = useAuth();
+  const incomingUrl = Linking.useURL();
+  const lastProcessedUrlRef = React.useRef<string | null>(null);
+
+  const handleGoogleLoginRedirect = React.useCallback(async (redirectUrl: string) => {
+    const { queryParams } = Linking.parse(redirectUrl);
+    const success = `${queryParams?.success ?? ""}`.toLowerCase() === "true";
+    const message = typeof queryParams?.message === "string" ? queryParams.message : "Co loi xay ra";
+
+    if (!success) {
+      throw new Error(message);
+    }
+
+    const accessToken =
+      typeof queryParams?.accessToken === "string" ? queryParams.accessToken : undefined;
+    const refreshToken =
+      typeof queryParams?.refreshToken === "string" ? queryParams.refreshToken : undefined;
+
+    if (!accessToken || !refreshToken) {
+      throw new Error("Backend redirect khong tra ve du access token va refresh token.");
+    }
+
+    await applyLoginResponse({
+      accessToken,
+      refreshToken,
+      expiresAt:
+        typeof queryParams?.expiresAt === "string" ? queryParams.expiresAt : undefined,
+      refreshTokenExpiryTime:
+        typeof queryParams?.refreshTokenExpiryTime === "string"
+          ? queryParams.refreshTokenExpiryTime
+          : undefined,
+    } satisfies LoginResponse);
+
+    router.replace("/(tabs)");
+  }, [applyLoginResponse, router]);
+
+  React.useEffect(() => {
+    if (!incomingUrl || incomingUrl === lastProcessedUrlRef.current) {
+      return;
+    }
+
+    const { path, queryParams } = Linking.parse(incomingUrl);
+    const hasGoogleLoginPayload =
+      typeof queryParams?.accessToken === "string" ||
+      typeof queryParams?.refreshToken === "string" ||
+      typeof queryParams?.success === "string";
+
+    if (path !== "auth/login" || !hasGoogleLoginPayload) {
+      return;
+    }
+
+    lastProcessedUrlRef.current = incomingUrl;
+
+    void handleGoogleLoginRedirect(incomingUrl).catch((error) => {
+      Alert.alert(
+        "Dang nhap Google that bai",
+        error instanceof Error ? error.message : "Co loi xay ra"
+      );
+    });
+  }, [handleGoogleLoginRedirect, incomingUrl]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -137,7 +144,7 @@ export const Login = () => {
         </View>
 
         <View style={styles.buttonContainer}>
-          <GoogleLoginButton isLoading={isLoading} onGoogleToken={loginWithGoogle} />
+          <GoogleLoginButton isLoading={isLoading} onGoogleLoginRedirect={handleGoogleLoginRedirect} />
           <PrimaryButton
             label="Dang nhap voi tu cach khach"
             variant="ghost"

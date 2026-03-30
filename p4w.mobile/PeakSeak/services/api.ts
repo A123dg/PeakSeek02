@@ -1,5 +1,3 @@
-import { Platform } from "react-native";
-
 export type ApiResponse<T> = {
   code: number;
   success: boolean;
@@ -34,6 +32,39 @@ export type RegisterRequest = {
   userName: string;
   dateOfBirth?: string;
   mediaLinkUrl?: string;
+};
+
+export type UpdateProfileRequest = {
+  email: string;
+  userName: string;
+  dateOfBirth?: string;
+  password?: string;
+  mediaLinkUrl?: string;
+};
+
+export type CreateLocationRequest = {
+  locationName: string;
+  description?: string;
+  address: string;
+  addressLink?: string;
+  openingHours?: string;
+  closingHours?: string;
+  type: number;
+};
+
+export type OwnedLocationDetail = {
+  id: string;
+  ownerId?: string | null;
+  ownerName?: string | null;
+  locationName: string;
+  description?: string | null;
+  address: string;
+  addressLink?: string | null;
+  type: number;
+  openingHours?: string | null;
+  closingHours?: string | null;
+  status: number;
+  statusName: string;
 };
 
 export type LocationCard = {
@@ -76,10 +107,30 @@ export type LocationDetail = {
 
 export type UserProfile = {
   id: string;
+  roleId: string;
+  googleUserId?: string | null;
   email: string;
   userName: string;
   dateOfBirth?: string | null;
+  password?: string | null;
+  status: number;
+  refreshTokenExpiryTime?: string | null;
+  createdAt: string;
   mediaLinkUrl: string;
+  recentLocation?: {
+    id: string;
+    locationName: string;
+    address?: string | null;
+  } | null;
+  ownedLocations?: OwnedLocation[] | null;
+};
+
+export type OwnedLocation = {
+  id: string;
+  locationName: string;
+  address: string;
+  status: number;
+  statusName: string;
 };
 
 export type CreateReviewRequest = {
@@ -94,8 +145,7 @@ export type CreateReportRequest = {
   targetId: string;
 };
 
-const FALLBACK_API_URL =
-  Platform.OS === "android" ? "http://10.0.2.2:5059/api" : "http://localhost:5059/api";
+const FALLBACK_API_URL = "https://p4w-production.up.railway.app/api";
 
 const normalizeApiUrl = (value: string) => value.trim().replace(/\/+$/, "");
 export const API_BASE_URL = normalizeApiUrl(process.env.EXPO_PUBLIC_API_URL ?? FALLBACK_API_URL);
@@ -172,10 +222,24 @@ export const registerApi = (payload: RegisterRequest) =>
     body: JSON.stringify(payload),
   });
 
+export const updateProfileApi = (payload: UpdateProfileRequest, token: string) =>
+  apiRequest<UserProfile>("/Auth/update-profile", {
+    method: "PUT",
+    token,
+    body: JSON.stringify(payload),
+  });
+
 export const refreshTokenApi = (refreshToken: string) =>
   apiRequest<LoginResponse>("/Auth/refresh-token", {
     method: "POST",
     body: JSON.stringify({ refreshToken }),
+  });
+
+export const createLocationApi = (payload: CreateLocationRequest, token: string) =>
+  apiRequest<OwnedLocationDetail>("/Location", {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
   });
 
 export const getProfileApi = (token: string) =>
@@ -202,3 +266,21 @@ export const createReportApi = (payload: CreateReportRequest, token: string) =>
     token,
     body: JSON.stringify(payload),
   });
+
+export const uploadImageApi = (file: {
+  uri: string;
+  name?: string;
+  type?: string;
+}) => {
+  const formData = new FormData();
+  formData.append("file", {
+    uri: file.uri,
+    name: file.name ?? "avatar.jpg",
+    type: file.type ?? "image/jpeg",
+  } as unknown as Blob);
+
+  return apiRequest<string>("/UploadFile/image", {
+    method: "POST",
+    body: formData,
+  });
+};

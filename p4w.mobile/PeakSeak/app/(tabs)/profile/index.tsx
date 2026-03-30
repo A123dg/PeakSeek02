@@ -1,22 +1,24 @@
-import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ScrollView,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useMemo, useState } from "react";
+import { Alert, SafeAreaView, ScrollView, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+
 import { GoSitemapButton } from "@/components/app/GoSiteMapButton";
+import { EmptyOwnedLocations } from "@/components/app/profile/EmptyOwnedLocations";
+import { PersonalInfoModal } from "@/components/app/profile/PersonalInfoModal";
+import { ProfileHeroCard } from "@/components/app/profile/ProfileHeroCard";
+import { ProfileMenuGroup } from "@/components/app/profile/ProfileMenuGroup";
+import { formatProfileDate } from "@/components/app/profile/profileUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import { uploadImageApi } from "@/services/api";
 
 export const ProfileScreen = () => {
-  const { profile, logout, refreshProfile, isAuthenticated } = useAuth();
+  const { profile, logout, refreshProfile, isAuthenticated, updateProfile, isLoading } = useAuth();
+  const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [draftEmail, setDraftEmail] = useState("");
+  const [draftDob, setDraftDob] = useState<Date>(new Date());
+  const [selectedAvatarUri, setSelectedAvatarUri] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -24,10 +26,22 @@ export const ProfileScreen = () => {
     }
   }, [isAuthenticated, refreshProfile]);
 
-  const onPressPersonalInfo = () =>
-    Alert.alert("Thong tin ca nhan", profile ? `${profile.userName}\n${profile.email}` : "Ban chua dang nhap");
+  useEffect(() => {
+    if (!isProfileModalVisible) {
+      return;
+    }
 
-  const onPressAddress = () => router.push("/(tabs)/profile/location-info");
+    setDraftName(profile?.userName ?? "");
+    setDraftEmail(profile?.email ?? "");
+    setSelectedAvatarUri(profile?.mediaLinkUrl || null);
+    setDraftDob(profile?.dateOfBirth ? new Date(profile.dateOfBirth) : new Date());
+  }, [isProfileModalVisible, profile]);
+
+  const ownedLocations = useMemo(() => profile?.ownedLocations ?? [], [profile?.ownedLocations]);
+  const formattedCreatedAt = formatProfileDate(profile?.createdAt);
+
+  const openProfileModal = () => setIsProfileModalVisible(true);
+  const closeProfileModal = () => setIsProfileModalVisible(false);
 
   const onPressLogout = () => {
     Alert.alert("Dang xuat", "Ban co chac muon dang xuat khong?", [
@@ -43,80 +57,155 @@ export const ProfileScreen = () => {
     ]);
   };
 
-  const pickImage = async () => {
+  const selectImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       Alert.alert("Cho phep ung dung truy cap anh cua ban");
-      return;
+      return null;
     }
 
-    await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
     });
+
+    if (result.canceled) {
+      return null;
+    }
+
+    return result.assets[0].uri;
+  };
+
+  const uploadAvatar = async (uri: string) => {
+    const uploadResponse = await uploadImageApi({
+      uri,
+      name: "avatar.jpg",
+      type: "image/jpeg",
+    });
+
+    if (!uploadResponse.data) {
+      throw new Error("Khong nhan duoc URL anh sau khi upload.");
+    }
+
+    return uploadResponse.data;
+  };
+
+  const handleQuickAvatarUpdate = async () => {
+    try {
+      if (!profile) {
+        Alert.alert("Chua dang nhap", "Ban can dang nhap de cap nhat avatar.");
+        return;
+      }
+
+      const imageUri = await selectImage();
+      if (!imageUri) {
+        return;
+      }
+
+      const mediaLinkUrl = await uploadAvatar(imageUri);
+      await updateProfile({
+        userName: profile.userName,
+        email: profile.email,
+        dateOfBirth: profile.dateOfBirth ?? undefined,
+        mediaLinkUrl,
+      });
+
+      Alert.alert("Thanh cong", "Da cap nhat avatar.");
+    } catch (error) {
+      Alert.alert("Cap nhat avatar that bai", error instanceof Error ? error.message : "Co loi xay ra");
+    }
+  };
+
+  const handleDraftAvatarPick = async () => {
+    const imageUri = await selectImage();
+    if (imageUri) {
+      setSelectedAvatarUri(imageUri);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      if (!draftName.trim()) {
+        Alert.alert("Thieu thong tin", "Vui long nhap ten nguoi dung.");
+        return;
+      }
+
+      if (!draftEmail.trim()) {
+        Alert.alert("Thieu thong tin", "Vui long nhap email.");
+        return;
+      }
+
+      let mediaLinkUrl = profile?.mediaLinkUrl ?? undefined;
+      if (selectedAvatarUri && selectedAvatarUri !== profile?.mediaLinkUrl) {
+        mediaLinkUrl = await uploadAvatar(selectedAvatarUri);
+      }
+
+      await updateProfile({
+        userName: draftName.trim(),
+        email: draftEmail.trim(),
+        dateOfBirth: draftDob.toISOString(),
+        mediaLinkUrl,
+      });
+
+      closeProfileModal();
+      Alert.alert("Thanh cong", "Da cap nhat thong tin ca nhan.");
+    } catch (error) {
+      Alert.alert("Cap nhat that bai", error instanceof Error ? error.message : "Co loi xay ra");
+    }
   };
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.card}>
-          <View style={styles.avatarWrap}>
-            {profile?.mediaLinkUrl ? (
-              <Image source={{ uri: profile.mediaLinkUrl }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                <Text style={styles.avatarPlaceholderText}>{profile?.userName?.[0] ?? "?"}</Text>
-              </View>
-            )}
-            <TouchableOpacity style={styles.cameraBadge} onPress={pickImage}>
-              <Ionicons name="camera" size={14} color="white" />
-            </TouchableOpacity>
-          </View>
+        <ProfileHeroCard
+          email={profile?.email}
+          mediaLinkUrl={profile?.mediaLinkUrl}
+          userName={profile?.userName}
+          onAvatarPress={handleQuickAvatarUpdate}
+          menu={
+            <ProfileMenuGroup
+              items={[
+                { icon: "create-outline", title: "Cap nhat thong tin", onPress: openProfileModal },
+                {
+                  icon: "location-outline",
+                  title: "Dia diem cua ban",
+                  onPress: () => router.push("/(tabs)/profile/location-info"),
+                },
+                { icon: "log-out-outline", title: "Dang xuat", onPress: onPressLogout, danger: true },
+              ]}
+              footer={<GoSitemapButton />}
+            />
+          }
+        />
 
-          <Text style={styles.name}>{profile?.userName ?? "Khach"}</Text>
-          <Text style={styles.email}>{profile?.email ?? "Ban chua dang nhap"}</Text>
-
-          <View style={styles.group}>
-            <MenuItem icon="person-outline" title="Thong tin ca nhan" onPress={onPressPersonalInfo} />
-            <Divider />
-            <MenuItem icon="location-outline" title="Dia diem cua ban" onPress={onPressAddress} />
-            <Divider />
-            <MenuItem icon="log-out-outline" title="Dang xuat" danger onPress={onPressLogout} />
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-              <GoSitemapButton />
-            </View>
-          </View>
-        </View>
+        {!ownedLocations.length ? (
+          <EmptyOwnedLocations description="Tai khoan nay chua co dia diem nao trong danh sach so huu." />
+        ) : null}
       </ScrollView>
+
+      <PersonalInfoModal
+        createdAtLabel={formattedCreatedAt}
+        draftDob={draftDob}
+        draftEmail={draftEmail}
+        draftName={draftName}
+        isLoading={isLoading}
+        onAvatarPress={handleDraftAvatarPick}
+        onClose={closeProfileModal}
+        onDateChange={setDraftDob}
+        onEmailChange={setDraftEmail}
+        onNameChange={setDraftName}
+        onSave={handleSaveProfile}
+        ownedLocations={ownedLocations}
+        selectedAvatarUri={selectedAvatarUri}
+        visible={isProfileModalVisible}
+      />
     </SafeAreaView>
   );
 };
 
 export default ProfileScreen;
-
-const MenuItem = ({
-  icon,
-  title,
-  onPress,
-  danger,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  onPress: () => void;
-  danger?: boolean;
-}) => (
-  <TouchableOpacity style={styles.item} onPress={onPress}>
-    <View style={styles.itemIcon}>
-      <Ionicons name={icon} size={18} color={danger ? "#EF4444" : "#111827"} />
-    </View>
-    <Text style={[styles.itemTitle, danger && { color: "#EF4444" }]}>{title}</Text>
-    <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-  </TouchableOpacity>
-);
-
-const Divider = () => <View style={styles.divider} />;
 
 const styles = StyleSheet.create({
   safe: {
@@ -125,91 +214,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 22,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 3,
-  },
-  avatarWrap: {
-    alignSelf: "center",
-    width: 92,
-    height: 92,
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
-  },
-  avatarPlaceholder: {
-    backgroundColor: "#E5E7EB",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarPlaceholderText: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#475569",
-  },
-  cameraBadge: {
-    position: "absolute",
-    right: 0,
-    bottom: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#16A34A",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "white",
-  },
-  name: {
-    textAlign: "center",
-    fontSize: 18,
-    fontWeight: "800",
-  },
-  email: {
-    textAlign: "center",
-    fontSize: 13,
-    color: "#6B7280",
-    marginBottom: 16,
-  },
-  group: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-    overflow: "hidden",
-  },
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 14,
+    paddingVertical: 12,
     gap: 12,
-  },
-  itemIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: "#F3F4F6",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  itemTitle: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#F1F2F4",
-    marginLeft: 64,
   },
 });

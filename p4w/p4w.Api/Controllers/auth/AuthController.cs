@@ -9,6 +9,7 @@ using p4w.Core.Interfaces.Services.Auth;
 using p4w.Core.Paginations;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace p4w.Api.Controllers.Auth;
 
@@ -230,35 +231,29 @@ public class AuthController : ControllerBase
         };
     }
 
-    private string BuildGoogleCallbackUri(string? redirectUri)
+private string BuildGoogleCallbackUri(string? redirectUri)
+{
+    var callbackBaseUrl = ResolveGoogleCallbackBaseUrl();
+    return $"{callbackBaseUrl}/api/Auth/google-callback";
+}
+
+   private string ResolveGoogleCallbackBaseUrl()
+{
+    var configuredBaseUrl = _configuration["Authentication:Google:CallbackBaseUrl"]
+        ?? Environment.GetEnvironmentVariable("Authentication__Google__CallbackBaseUrl");
+
+    if (!string.IsNullOrWhiteSpace(configuredBaseUrl))
     {
-        var callbackBaseUrl = ResolveGoogleCallbackBaseUrl();
-        var callbackUri = $"{callbackBaseUrl}/api/Auth/google-callback";
-        return QueryHelpers.AddQueryString(
-            callbackUri,
-            new Dictionary<string, string?>
-            {
-                ["redirectUri"] = redirectUri
-            });
+        return configuredBaseUrl.TrimEnd('/');
     }
 
-    private string ResolveGoogleCallbackBaseUrl()
+    if (!Request.Host.HasValue)
     {
-        var configuredBaseUrl = _configuration["Authentication:Google:CallbackBaseUrl"]
-            ?? Environment.GetEnvironmentVariable("Authentication__Google__CallbackBaseUrl");
-
-        if (!string.IsNullOrWhiteSpace(configuredBaseUrl))
-        {
-            return configuredBaseUrl.TrimEnd('/');
-        }
-
-        if (!Request.Host.HasValue)
-        {
-            throw new InvalidOperationException("Cannot build Google callback URL.");
-        }
-
-        return $"{Request.Scheme}://{Request.Host}{Request.PathBase}".TrimEnd('/');
+        throw new InvalidOperationException("Cannot build Google callback URL.");
     }
+
+    return $"https://{Request.Host}{Request.PathBase}".TrimEnd('/');
+}
 
     private string? ResolveGoogleRedirectUri(string? redirectUri)
     {
@@ -296,6 +291,19 @@ public class AuthController : ControllerBase
 
     private sealed class GoogleTokenResponse
     {
+        [JsonPropertyName("id_token")]
         public string? IdToken { get; set; }
+
+        [JsonPropertyName("access_token")]
+        public string? AccessToken { get; set; }
+
+        [JsonPropertyName("refresh_token")]
+        public string? RefreshToken { get; set; }
+
+        [JsonPropertyName("token_type")]
+        public string? TokenType { get; set; }
+
+        [JsonPropertyName("expires_in")]
+        public int? ExpiresIn { get; set; }
     }
 }

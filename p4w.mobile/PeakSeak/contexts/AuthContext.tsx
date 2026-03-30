@@ -1,14 +1,17 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   ApiError,
-  loginWithGoogleApi,
   type LoginRequest,
+  type LoginResponse,
   type RegisterRequest,
+  type UpdateProfileRequest,
   type UserProfile,
   getProfileApi,
   loginApi,
+  loginWithGoogleApi,
   refreshTokenApi,
   registerApi,
+  updateProfileApi,
 } from "@/services/api";
 
 type Session = {
@@ -22,7 +25,9 @@ type AuthContextValue = {
   profile: UserProfile | null;
   login: (payload: LoginRequest) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
+  applyLoginResponse: (payload: LoginResponse) => Promise<void>;
   register: (payload: RegisterRequest) => Promise<void>;
+  updateProfile: (payload: UpdateProfileRequest) => Promise<UserProfile>;
   logout: () => void;
   refreshProfile: () => Promise<UserProfile | null>;
   authorizedRequest: <T>(handler: (token: string) => Promise<T>) => Promise<T>;
@@ -91,6 +96,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  const applyLoginResponse = useCallback(async (payload: LoginResponse) => {
+    setIsLoading(true);
+    try {
+      const nextSession = {
+        accessToken: payload.accessToken,
+        refreshToken: payload.refreshToken,
+      };
+
+      setSession(nextSession);
+      const profileResponse = await getProfileApi(nextSession.accessToken);
+      setProfile(profileResponse.data);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const loginWithGoogle = useCallback(async (idToken: string) => {
     setIsLoading(true);
     try {
@@ -117,6 +138,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  const updateProfile = useCallback(async (payload: UpdateProfileRequest) => {
+    setIsLoading(true);
+    try {
+      const updatedProfile = await authorizedRequest((token) => updateProfileApi(payload, token));
+      setProfile(updatedProfile.data);
+      return updatedProfile.data;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authorizedRequest]);
+
   useEffect(() => {
     if (!session?.accessToken) {
       setProfile(null);
@@ -130,12 +162,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       profile,
       login,
       loginWithGoogle,
+      applyLoginResponse,
       register,
+      updateProfile,
       logout,
       refreshProfile,
       authorizedRequest,
     }),
-    [authorizedRequest, isLoading, login, loginWithGoogle, logout, profile, refreshProfile, register, session]
+    [applyLoginResponse, authorizedRequest, isLoading, login, loginWithGoogle, logout, profile, refreshProfile, register, session, updateProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
