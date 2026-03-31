@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View, ActivityIndicator } from "react-native";
+import { Alert, Image, Pressable, RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View, ActivityIndicator } from "react-native";
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Palette } from "@/components/app/palette";
@@ -43,6 +43,7 @@ export const LocationInfo = () => {
   const { isAuthenticated, authorizedRequest } = useAuth();
   const [location, setLocation] = useState<LocationDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const reviewModalRef = useRef<LocationReviewBottomSheetRef>(null);
   const openReviewSheet = useCallback(() => {
@@ -57,23 +58,32 @@ export const LocationInfo = () => {
     reviewModalRef.current?.dismiss();
   }, []);
 
-  useEffect(() => {
-    const loadLocation = async () => {
-      if (!locationId) {
-        setIsLoading(false);
-        return;
-      }
+  const loadLocation = useCallback(async () => {
+    if (!locationId) {
+      setIsLoading(false);
+      return;
+    }
 
-      try {
-        const response = await getLocationDetailApi(locationId);
-        setLocation(response.data);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void loadLocation();
+    try {
+      const response = await getLocationDetailApi(locationId);
+      setLocation(response.data);
+    } finally {
+      setIsLoading(false);
+    }
   }, [locationId]);
+
+  useEffect(() => {
+    void loadLocation();
+  }, [loadLocation]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await loadLocation();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [loadLocation]);
 
   const reportSnapPoints = useMemo(() => ["55%"], []);
   const reviewSnapPoints = useMemo(() => ["72%"], []);
@@ -105,8 +115,12 @@ export const LocationInfo = () => {
           style={styles.screen}
           contentContainerStyle={[styles.container, { paddingHorizontal: clamp((width - contentWidth) / 2, 12, 20) }]}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void handleRefresh()} />}
         >
           <View style={[styles.mapBlock, { height: imageHeight }]}>
+            {location.mediaLinkUrls?.[0] ? (
+              <Image source={{ uri: location.mediaLinkUrls[0] }} style={styles.locationImage} />
+            ) : null}
             <View pointerEvents="none" style={styles.mapOverlay} />
             <View style={styles.topIconRow}>
               <Pressable style={styles.iconButton} onPress={() => router.back()}>
@@ -245,8 +259,7 @@ export const LocationInfo = () => {
               )
             );
 
-            const response = await getLocationDetailApi(location.id);
-            setLocation(response.data);
+            await loadLocation();
           } catch (error) {
             Alert.alert("That bai", error instanceof Error ? error.message : "Khong gui duoc danh gia.");
             throw error;
@@ -287,6 +300,9 @@ const styles = StyleSheet.create({
   mapOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.08)",
+  },
+  locationImage: {
+    ...StyleSheet.absoluteFillObject,
   },
   topIconRow: {
     flexDirection: "row",

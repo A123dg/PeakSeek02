@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 import { TimePickerUI } from "@/components/app/TimePicker";
+import { useImagePicker } from "@/hooks/useImagePicker";
 
 type LocationFormValues = {
   locationName: string;
@@ -23,6 +25,7 @@ type LocationFormValues = {
   openingHours: string;
   closingHours: string;
   type: string;
+  mediaUris: string[];
 };
 
 type ProfileLocationFormProps = {
@@ -56,6 +59,7 @@ export const ProfileLocationForm = ({
   const [openingHours, setOpeningHours] = useState(initialValues?.openingHours ?? "08:00:00");
   const [closingHours, setClosingHours] = useState(initialValues?.closingHours ?? "22:00:00");
   const [type, setType] = useState(initialValues?.type ?? "1");
+  const { images, pickImages, removeImage, loading } = useImagePicker(initialValues?.mediaUris ?? [], 5);
 
   const canSave = useMemo(
     () => locationName.trim() && address.trim() && type.trim(),
@@ -75,6 +79,7 @@ export const ProfileLocationForm = ({
       openingHours,
       closingHours,
       type,
+      mediaUris: images,
     });
   };
 
@@ -106,6 +111,43 @@ export const ProfileLocationForm = ({
               <Text style={styles.bannerTitle}>Thong tin dia diem</Text>
               <Text style={styles.bannerSub}>Nhap day du thong tin de gui cho he thong xu ly.</Text>
             </View>
+          </View>
+
+          <View style={styles.card}>
+            <View style={styles.mediaHeader}>
+              <View style={styles.mediaCopy}>
+                <Text style={styles.cardTitle}>Anh dia diem</Text>
+                <Text style={styles.helperText}>Anh thu 1 se duoc xem la anh chinh. Toi da 5 anh.</Text>
+              </View>
+
+              <Pressable style={styles.mediaButton} onPress={() => void pickImages()} disabled={loading}>
+                <Ionicons name="images-outline" size={16} color="#FFFFFF" />
+                <Text style={styles.mediaButtonText}>{loading ? "Dang tai..." : "Chon anh"}</Text>
+              </Pressable>
+            </View>
+
+            {images.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.previewWrap}
+              >
+                {images.map((uri, index) => (
+                  <View key={`${uri}-${index}`} style={styles.previewItem}>
+                    <Image source={{ uri }} style={styles.previewImage} />
+                    <View style={styles.previewMeta}>
+                      <Text style={styles.previewOrder}>Anh {index + 1}</Text>
+                      {index === 0 ? <Text style={styles.previewPrimary}>Anh chinh</Text> : null}
+                    </View>
+                    <Pressable style={styles.removeBadge} onPress={() => removeImage(uri)}>
+                      <Ionicons name="close" size={14} color="#FFFFFF" />
+                    </Pressable>
+                  </View>
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={styles.helperText}>Chua co anh nao. Ban co the bo qua neu chua can.</Text>
+            )}
           </View>
 
           <View style={styles.card}>
@@ -371,9 +413,81 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
+  mediaHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  mediaCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  mediaButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: "#0F766E",
+  },
+  mediaButtonText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
+  },
   helperText: {
     fontSize: 12,
     color: "#64748B",
+  },
+  previewWrap: {
+    gap: 10,
+    paddingRight: 4,
+  },
+  previewItem: {
+    width: 260,
+    borderRadius: 14,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+  },
+  previewImage: {
+    width: "100%",
+    height: 180,
+    backgroundColor: "#E2E8F0",
+  },
+  previewMeta: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 4,
+  },
+  previewOrder: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  previewPrimary: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: "#DCFCE7",
+    color: "#166534",
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  removeBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(15, 23, 42, 0.72)",
   },
   footerInline: {
     paddingBottom: 12,

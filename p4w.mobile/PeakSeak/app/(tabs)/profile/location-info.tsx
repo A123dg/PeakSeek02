@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import { RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -9,15 +9,32 @@ import { OwnedLocationsScreenHeader } from "@/components/app/profile/OwnedLocati
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProfileLocationInfoScreen() {
-  const { isAuthenticated, profile, refreshProfile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
+  const ownedLocations = profile?.ownedLocations ?? [];
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const handleUpdatePress = (location: (typeof ownedLocations)[number]) => {
+    router.push({
+      pathname: "/(tabs)/profile/location-update",
+      params: {
+        id: location.id,
+        locationName: location.locationName,
+        address: location.address,
+        addressLink: location.addressLink ?? undefined,
+        mediaLinkUrls: JSON.stringify(location.mediaLinkUrls ?? []),
+        status: String(location.status),
+        statusName: location.statusName,
+      },
+    });
+  };
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      void refreshProfile();
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshProfile();
+    } finally {
+      setIsRefreshing(false);
     }
-  }, [isAuthenticated, refreshProfile]);
-
-  const ownedLocations = useMemo(() => profile?.ownedLocations ?? [], [profile?.ownedLocations]);
+  }, [refreshProfile]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -27,43 +44,40 @@ export default function ProfileLocationInfoScreen() {
         onAddPress={() => router.push("/(tabs)/profile/location-register")}
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.summaryCard}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void handleRefresh()} />}
+      >
+        {/* <View style={styles.summaryCard}>
           <View style={styles.summaryIcon}>
             <Ionicons name="business-outline" size={18} color="#166534" />
           </View>
           <View style={styles.summaryTextWrap}>
-            <Text style={styles.summaryTitle}>{ownedLocations.length} dia diem da so huu</Text>
+            <Text style={styles.summaryTitle}>
+              {ownedLocations.length > 0 ? `${ownedLocations.length} dia diem dang so huu` : "Dang ky dia diem moi"}
+            </Text>
             <Text style={styles.summaryDescription}>
-              Du lieu duoc bind truc tiep tu `ownedLocations` trong API profile.
+              {ownedLocations.length > 0
+                ? "Danh sach ben duoi duoc lay tu thong tin profile cua tai khoan hien tai."
+                : "Ban co the tao dia diem moi bang nut them o phia tren."}
             </Text>
           </View>
-        </View>
+        </View> */}
 
         {ownedLocations.length > 0 ? (
-          ownedLocations.map((location) => (
-            <OwnedLocationCard
-              key={location.id}
-              actionLabel="Cap nhat"
-              location={location}
-              onActionPress={(selectedLocation) =>
-                router.push({
-                  pathname: "/(tabs)/profile/location-update",
-                  params: {
-                    id: selectedLocation.id,
-                    locationName: selectedLocation.locationName,
-                    address: selectedLocation.address,
-                    status: `${selectedLocation.status}`,
-                    statusName: selectedLocation.statusName,
-                  },
-                })
-              }
-              showId
-              showStatusCode
-            />
-          ))
+          <View style={styles.list}>
+            {ownedLocations.map((location) => (
+              <OwnedLocationCard
+                key={location.id}
+                actionLabel="Cap nhat"
+                location={location}
+                onActionPress={handleUpdatePress}
+              />
+            ))}
+          </View>
         ) : (
-          <EmptyOwnedLocations description="Khi API profile tra ve `ownedLocations`, danh sach se hien thi o day." />
+          <EmptyOwnedLocations description="Ban co the tao dia diem moi bang nut them o phia tren." />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -111,5 +125,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     color: "#64748B",
+  },
+  list: {
+    gap: 12,
   },
 });

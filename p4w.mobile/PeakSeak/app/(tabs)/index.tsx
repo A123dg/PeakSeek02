@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View, Image, Pressable, ActivityIndicator } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { SafeAreaView, ScrollView, StyleSheet, Text, View, Image, Pressable, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Palette } from "@/components/app/palette";
@@ -31,7 +31,7 @@ const toPlaceCardProps = (location: LocationCard) => ({
   area: location.address,
   price: location.openingHours && location.closingHours ? `${location.openingHours} - ${location.closingHours}` : "Dang cap nhat",
   rating: location.averageRating || 0,
-  imageUrl: `https://picsum.photos/seed/${location.id}/600/400`,
+  imageUrl: location.mediaLinkUrls?.[0] || `https://picsum.photos/seed/${location.id}/600/400`,
   tags: [getTypeLabel(location.type), `${location.reviewCount} danh gia`],
 });
 
@@ -40,26 +40,40 @@ export default function HomeScreen() {
   const { profile } = useAuth();
   const [locations, setLocations] = useState<LocationCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const loadLocations = useCallback(async () => {
+    try {
+      const response = await getLocationsApi();
+      setLocations(response.data);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        const response = await getLocationsApi();
-        setLocations(response.data);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     void loadLocations();
-  }, []);
+  }, [loadLocations]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await loadLocations();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [loadLocations]);
 
   const featuredPlaces = useMemo(() => locations.slice(0, 3), [locations]);
   const nearbyPlaces = useMemo(() => locations.slice(0, 5), [locations]);
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void handleRefresh()} />}
+      >
         <View style={styles.heroRow}>
           <View style={styles.heroText}>
             <Text style={styles.greeting}>Xin chao, {profile?.userName ?? "ban"}</Text>

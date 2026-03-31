@@ -3,13 +3,8 @@ import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, Touch
 import { Ionicons } from "@expo/vector-icons";
 
 import { DatePickerUI } from "@/components/app/DatePicker";
-import { type OwnedLocation } from "@/services/api";
-
-import { EmptyOwnedLocations } from "./EmptyOwnedLocations";
-import { OwnedLocationCard } from "./OwnedLocationCard";
 
 type PersonalInfoModalProps = {
-  createdAtLabel: string;
   draftDob: Date;
   draftEmail: string;
   draftName: string;
@@ -20,13 +15,11 @@ type PersonalInfoModalProps = {
   onEmailChange: (value: string) => void;
   onNameChange: (value: string) => void;
   onSave: () => void;
-  ownedLocations: OwnedLocation[];
   selectedAvatarUri: string | null;
   visible: boolean;
 };
 
 export const PersonalInfoModal = ({
-  createdAtLabel,
   draftDob,
   draftEmail,
   draftName,
@@ -37,7 +30,6 @@ export const PersonalInfoModal = ({
   onEmailChange,
   onNameChange,
   onSave,
-  ownedLocations,
   selectedAvatarUri,
   visible,
 }: PersonalInfoModalProps) => (
@@ -94,21 +86,6 @@ export const PersonalInfoModal = ({
 
           <DatePickerUI label="Ngay sinh" value={draftDob} onConfirm={onDateChange} maximumDate={new Date()} />
 
-          <InfoRow label="Ngay tao tai khoan" value={createdAtLabel} />
-          <InfoRow label="So dia diem so huu" value={`${ownedLocations.length}`} />
-
-          <View style={styles.sectionBlock}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Dia diem da so huu</Text>
-              <Text style={styles.sectionMeta}>{ownedLocations.length} dia diem</Text>
-            </View>
-            {ownedLocations.length > 0 ? (
-              ownedLocations.map((location) => <OwnedLocationCard key={location.id} location={location} />)
-            ) : (
-              <EmptyOwnedLocations description="Tai khoan nay chua so huu dia diem nao." />
-            )}
-          </View>
-
           <TouchableOpacity
             style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
             onPress={onSave}
@@ -126,13 +103,6 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
   <View style={styles.fieldWrap}>
     <Text style={styles.fieldLabel}>{label}</Text>
     {children}
-  </View>
-);
-
-const InfoRow = ({ label, value }: { label: string; value?: string | null }) => (
-  <View style={styles.infoRow}>
-    <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue}>{value?.trim() ? value : "Chua cap nhat"}</Text>
   </View>
 );
 
@@ -245,44 +215,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 14,
     color: "#0F172A",
-  },
-  infoRow: {
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    gap: 4,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: "#64748B",
-    fontWeight: "600",
-  },
-  infoValue: {
-    fontSize: 15,
-    color: "#0F172A",
-    fontWeight: "700",
-  },
-  sectionBlock: {
-    marginTop: 4,
-    gap: 10,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  sectionMeta: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#64748B",
   },
   saveButton: {
     marginTop: 8,

@@ -1,14 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Alert, SafeAreaView, ScrollView, StyleSheet } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Alert, RefreshControl, SafeAreaView, ScrollView, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 
 import { GoSitemapButton } from "@/components/app/GoSiteMapButton";
-import { EmptyOwnedLocations } from "@/components/app/profile/EmptyOwnedLocations";
 import { PersonalInfoModal } from "@/components/app/profile/PersonalInfoModal";
 import { ProfileHeroCard } from "@/components/app/profile/ProfileHeroCard";
 import { ProfileMenuGroup } from "@/components/app/profile/ProfileMenuGroup";
-import { formatProfileDate } from "@/components/app/profile/profileUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadImageApi } from "@/services/api";
 
@@ -19,6 +17,16 @@ export const ProfileScreen = () => {
   const [draftEmail, setDraftEmail] = useState("");
   const [draftDob, setDraftDob] = useState<Date>(new Date());
   const [selectedAvatarUri, setSelectedAvatarUri] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshProfile();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refreshProfile]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -36,9 +44,6 @@ export const ProfileScreen = () => {
     setSelectedAvatarUri(profile?.mediaLinkUrl || null);
     setDraftDob(profile?.dateOfBirth ? new Date(profile.dateOfBirth) : new Date());
   }, [isProfileModalVisible, profile]);
-
-  const ownedLocations = useMemo(() => profile?.ownedLocations ?? [], [profile?.ownedLocations]);
-  const formattedCreatedAt = formatProfileDate(profile?.createdAt);
 
   const openProfileModal = () => setIsProfileModalVisible(true);
   const closeProfileModal = () => setIsProfileModalVisible(false);
@@ -158,7 +163,10 @@ export const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => void handleRefresh()} />}
+      >
         <ProfileHeroCard
           email={profile?.email}
           mediaLinkUrl={profile?.mediaLinkUrl}
@@ -179,14 +187,9 @@ export const ProfileScreen = () => {
             />
           }
         />
-
-        {!ownedLocations.length ? (
-          <EmptyOwnedLocations description="Tai khoan nay chua co dia diem nao trong danh sach so huu." />
-        ) : null}
       </ScrollView>
 
       <PersonalInfoModal
-        createdAtLabel={formattedCreatedAt}
         draftDob={draftDob}
         draftEmail={draftEmail}
         draftName={draftName}
@@ -197,7 +200,6 @@ export const ProfileScreen = () => {
         onEmailChange={setDraftEmail}
         onNameChange={setDraftName}
         onSave={handleSaveProfile}
-        ownedLocations={ownedLocations}
         selectedAvatarUri={selectedAvatarUri}
         visible={isProfileModalVisible}
       />

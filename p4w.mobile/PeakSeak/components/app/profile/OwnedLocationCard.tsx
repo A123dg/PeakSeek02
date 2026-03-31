@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { type OwnedLocation } from "@/services/api";
 
@@ -21,6 +21,10 @@ export const OwnedLocationCard = ({
   showStatusCode = false,
 }: OwnedLocationCardProps) => (
   <View style={styles.card}>
+    {location.mediaLinkUrls?.[0] ? (
+      <Image source={{ uri: location.mediaLinkUrls[0] }} style={styles.coverImage} />
+    ) : null}
+
     <View style={styles.header}>
       <View style={styles.titleWrap}>
         <Text style={styles.title}>{location.locationName}</Text>
@@ -35,6 +39,13 @@ export const OwnedLocationCard = ({
       <Text style={styles.metaLabel}>Dia chi</Text>
       <Text style={styles.address}>{location.address}</Text>
     </View>
+
+    {location.addressLink ? (
+      <View style={styles.metaBlock}>
+        <Text style={styles.metaLabel}>Link ban do</Text>
+        <Text style={styles.link}>{location.addressLink}</Text>
+      </View>
+    ) : null}
 
     {showStatusCode ? (
       <View style={styles.metaBlock}>
@@ -59,6 +70,12 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     padding: 16,
     gap: 12,
+  },
+  coverImage: {
+    width: "100%",
+    height: 180,
+    borderRadius: 16,
+    backgroundColor: "#E2E8F0",
   },
   header: {
     flexDirection: "row",
@@ -102,6 +119,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: "#334155",
+  },
+  link: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#2563EB",
   },
   metaValue: {
     fontSize: 12,

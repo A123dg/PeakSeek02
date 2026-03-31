@@ -4,7 +4,7 @@ import { router } from "expo-router";
 
 import { ProfileLocationForm } from "@/components/app/ProfileLocationForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { createLocationApi } from "@/services/api";
+import { createLocationApi, uploadImageApi } from "@/services/api";
 
 export default function ProfileLocationRegisterScreen() {
   const { authorizedRequest, refreshProfile } = useAuth();
@@ -18,9 +18,29 @@ export default function ProfileLocationRegisterScreen() {
     openingHours: string;
     closingHours: string;
     type: string;
+    mediaUris: string[];
   }) => {
     try {
       setIsSubmitting(true);
+
+      const mediaLinkUrls =
+        values.mediaUris.length > 0
+          ? await Promise.all(
+              values.mediaUris.map((uri, index) =>
+                uploadImageApi({
+                  uri,
+                  name: `location-${index + 1}.jpg`,
+                  type: "image/jpeg",
+                }).then((response) => {
+                  if (!response.data) {
+                    throw new Error(`Upload anh ${index + 1} that bai.`);
+                  }
+
+                  return response.data;
+                })
+              )
+            )
+          : [];
 
       await authorizedRequest((token) =>
         createLocationApi(
@@ -32,6 +52,7 @@ export default function ProfileLocationRegisterScreen() {
             openingHours: values.openingHours.trim() || undefined,
             closingHours: values.closingHours.trim() || undefined,
             type: Number(values.type),
+            mediaLinkUrls,
           },
           token
         )

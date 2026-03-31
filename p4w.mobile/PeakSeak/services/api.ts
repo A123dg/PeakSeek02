@@ -50,6 +50,18 @@ export type CreateLocationRequest = {
   openingHours?: string;
   closingHours?: string;
   type: number;
+  mediaLinkUrls?: string[];
+};
+
+export type UpdateLocationRequest = {
+  locationName: string;
+  description?: string;
+  address: string;
+  addressLink?: string;
+  openingHours?: string;
+  closingHours?: string;
+  type: number;
+  mediaLinkUrls?: string[];
 };
 
 export type OwnedLocationDetail = {
@@ -63,6 +75,7 @@ export type OwnedLocationDetail = {
   type: number;
   openingHours?: string | null;
   closingHours?: string | null;
+  mediaLinkUrls?: string[];
   status: number;
   statusName: string;
 };
@@ -73,6 +86,7 @@ export type LocationCard = {
   description?: string | null;
   address: string;
   addressLink?: string | null;
+  mediaLinkUrls?: string[];
   type: number;
   openingHours?: string | null;
   closingHours?: string | null;
@@ -97,6 +111,7 @@ export type LocationDetail = {
   description?: string | null;
   address: string;
   addressLink?: string | null;
+  mediaLinkUrls?: string[];
   type: number;
   openingHours?: string | null;
   closingHours?: string | null;
@@ -115,7 +130,6 @@ export type UserProfile = {
   password?: string | null;
   status: number;
   refreshTokenExpiryTime?: string | null;
-  createdAt: string;
   mediaLinkUrl: string;
   recentLocation?: {
     id: string;
@@ -129,6 +143,8 @@ export type OwnedLocation = {
   id: string;
   locationName: string;
   address: string;
+  addressLink?: string | null;
+  mediaLinkUrls?: string[];
   status: number;
   statusName: string;
 };
@@ -238,6 +254,13 @@ export const refreshTokenApi = (refreshToken: string) =>
 export const createLocationApi = (payload: CreateLocationRequest, token: string) =>
   apiRequest<OwnedLocationDetail>("/Location", {
     method: "POST",
+    token,
+    body: JSON.stringify(payload),
+  });
+
+export const updateLocationApi = (locationId: string, payload: UpdateLocationRequest, token: string) =>
+  apiRequest<OwnedLocationDetail>(`/Location/${locationId}`, {
+    method: "PUT",
     token,
     body: JSON.stringify(payload),
   });
