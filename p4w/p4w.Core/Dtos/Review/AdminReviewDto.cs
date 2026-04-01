@@ -12,4 +12,5 @@ public class AdminReviewDto
     public int Status { get; set; }
     public string StatusName { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
+    public List<string> MediaLinkUrls { get; set; } = [];
 }

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+﻿import React, { useCallback, useEffect, useState } from "react";
 import { Alert, RefreshControl, SafeAreaView, ScrollView, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -49,10 +49,10 @@ export const ProfileScreen = () => {
   const closeProfileModal = () => setIsProfileModalVisible(false);
 
   const onPressLogout = () => {
-    Alert.alert("Dang xuat", "Ban co chac muon dang xuat khong?", [
-      { text: "Huy", style: "cancel" },
+    Alert.alert("Đăng xuất", "Bạn có chắc muốn đăng xuất không?", [
+      { text: "Hủy", style: "cancel" },
       {
-        text: "Dang xuat",
+        text: "Đăng xuất",
         style: "destructive",
         onPress: () => {
           logout();
@@ -65,7 +65,7 @@ export const ProfileScreen = () => {
   const selectImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("Cho phep ung dung truy cap anh cua ban");
+      Alert.alert("Cho phép ứng dụng truy cập ảnh của bạn");
       return null;
     }
 
@@ -91,7 +91,7 @@ export const ProfileScreen = () => {
     });
 
     if (!uploadResponse.data) {
-      throw new Error("Khong nhan duoc URL anh sau khi upload.");
+      throw new Error("Không nhận được URL ảnh sau khi upload.");
     }
 
     return uploadResponse.data;
@@ -100,7 +100,7 @@ export const ProfileScreen = () => {
   const handleQuickAvatarUpdate = async () => {
     try {
       if (!profile) {
-        Alert.alert("Chua dang nhap", "Ban can dang nhap de cap nhat avatar.");
+        Alert.alert("Chưa đăng nhập", "Bạn cần đăng nhập để cập nhật avatar.");
         return;
       }
 
@@ -117,9 +117,9 @@ export const ProfileScreen = () => {
         mediaLinkUrl,
       });
 
-      Alert.alert("Thanh cong", "Da cap nhat avatar.");
+      Alert.alert("Thành công", "Đã cập nhật avatar.");
     } catch (error) {
-      Alert.alert("Cap nhat avatar that bai", error instanceof Error ? error.message : "Co loi xay ra");
+      Alert.alert("Cập nhật avatar thất bại", error instanceof Error ? error.message : "Có lỗi xảy ra");
     }
   };
 
@@ -133,12 +133,12 @@ export const ProfileScreen = () => {
   const handleSaveProfile = async () => {
     try {
       if (!draftName.trim()) {
-        Alert.alert("Thieu thong tin", "Vui long nhap ten nguoi dung.");
+        Alert.alert("Thiếu thông tin", "Vui lòng nhập tên người dùng.");
         return;
       }
 
       if (!draftEmail.trim()) {
-        Alert.alert("Thieu thong tin", "Vui long nhap email.");
+        Alert.alert("Thiếu thông tin", "Vui lòng nhập email.");
         return;
       }
 
@@ -155,9 +155,9 @@ export const ProfileScreen = () => {
       });
 
       closeProfileModal();
-      Alert.alert("Thanh cong", "Da cap nhat thong tin ca nhan.");
+      Alert.alert("Thành công", "Đã cập nhật thông tin cá nhân.");
     } catch (error) {
-      Alert.alert("Cap nhat that bai", error instanceof Error ? error.message : "Co loi xay ra");
+      Alert.alert("Cập nhật thất bại", error instanceof Error ? error.message : "Có lỗi xảy ra");
     }
   };
 
@@ -175,13 +175,13 @@ export const ProfileScreen = () => {
           menu={
             <ProfileMenuGroup
               items={[
-                { icon: "create-outline", title: "Cap nhat thong tin", onPress: openProfileModal },
+                { icon: "create-outline", title: "Cập nhật thông tin", onPress: openProfileModal },
                 {
                   icon: "location-outline",
-                  title: "Dia diem cua ban",
+                  title: "Địa điểm của bạn",
                   onPress: () => router.push("/(tabs)/profile/location-info"),
                 },
-                { icon: "log-out-outline", title: "Dang xuat", onPress: onPressLogout, danger: true },
+                { icon: "log-out-outline", title: "Đăng xuất", onPress: onPressLogout, danger: true },
               ]}
               footer={<GoSitemapButton />}
             />
@@ -220,3 +220,4 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 });
+

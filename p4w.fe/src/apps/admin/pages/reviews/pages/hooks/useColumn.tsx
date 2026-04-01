@@ -1,6 +1,7 @@
-import { EyeOutlined, StopOutlined } from "@ant-design/icons";
-import { Badge, Button, Space, Tag, Tooltip } from "antd";
+import { EyeOutlined, LinkOutlined, StopOutlined } from "@ant-design/icons";
+import { Badge, Button, Image, Space, Tag, Tooltip, Typography } from "antd";
 
+import { formatDate } from "@/shared/utils/formatDate";
 import type { ReviewRow, ReviewStatus } from "./useData";
 
 type UseReviewColumnsProps = {
@@ -47,6 +48,33 @@ export const useReviewColumns = ({
       ellipsis: true,
     },
     {
+      title: "Media URL",
+      dataIndex: "mediaLinkUrls",
+      key: "mediaLinkUrls",
+      width: 220,
+      render: (mediaLinkUrls?: string[]) => {
+        const firstMedia = mediaLinkUrls?.[0];
+        if (!firstMedia) {
+          return <span>--</span>;
+        }
+
+        return (
+          <Space size={8}>
+            <Image
+              src={firstMedia}
+              width={40}
+              height={40}
+              style={{ objectFit: "cover", borderRadius: 10 }}
+              fallback="data:image/gif;base64,R0lGODlhAQABAAAAACw="
+            />
+            <Typography.Link href={firstMedia} target="_blank" ellipsis style={{ maxWidth: 140 }}>
+              <LinkOutlined /> Xem media
+            </Typography.Link>
+          </Space>
+        );
+      },
+    },
+    {
       title: "Trang thai",
       dataIndex: "status",
       key: "status",
@@ -73,6 +101,7 @@ export const useReviewColumns = ({
       dataIndex: "createdAt",
       key: "createdAt",
       width: 140,
+      render: (value: string) => formatDate(value),
     },
     {
       title: "Thao tac",

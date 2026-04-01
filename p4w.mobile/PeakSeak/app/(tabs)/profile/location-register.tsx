@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Alert } from "react-native";
 import { router } from "expo-router";
 
@@ -33,7 +33,7 @@ export default function ProfileLocationRegisterScreen() {
                   type: "image/jpeg",
                 }).then((response) => {
                   if (!response.data) {
-                    throw new Error(`Upload anh ${index + 1} that bai.`);
+                    throw new Error(`Upload ảnh ${index + 1} thất bại.`);
                   }
 
                   return response.data;
@@ -59,10 +59,10 @@ export default function ProfileLocationRegisterScreen() {
       );
 
       await refreshProfile();
-      Alert.alert("Thanh cong", "Da gui dang ky dia diem. Dia diem se cho admin duyet.");
+      Alert.alert("Thành công", "Đã gửi đăng ký địa điểm. Địa điểm sẽ chờ admin duyệt.");
       router.back();
     } catch (error) {
-      Alert.alert("Dang ky that bai", error instanceof Error ? error.message : "Co loi xay ra");
+      Alert.alert("Đăng ký thất bại", error instanceof Error ? error.message : "Có lỗi xảy ra");
     } finally {
       setIsSubmitting(false);
     }
@@ -70,11 +70,12 @@ export default function ProfileLocationRegisterScreen() {
 
   return (
     <ProfileLocationForm
-      title="Dang ky dia diem"
-      subtitle="Gui thong tin dia diem moi de he thong tiep nhan"
-      submitLabel="Gui dang ky"
+      title="Đăng ký địa điểm"
+      subtitle="Gửi thông tin địa điểm mới để hệ thống tiếp nhận"
+      submitLabel="Gửi đăng ký"
       isSubmitting={isSubmitting}
       onSubmit={handleSubmit}
     />
   );
 }
+

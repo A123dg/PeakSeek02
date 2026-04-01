@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Image,
@@ -64,8 +64,7 @@ export const LocationReviewBottomSheet = React.forwardRef<
   const [content, setContent] = useState('');
   const [showError, setShowError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const { images, pickImages, removeImage, resetImages } = useImagePicker();
+  const { images, pickImages, removeImage, resetImages } = useImagePicker([], 3);
   const translateY = useRef(new Animated.Value(sheetHeight)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -87,9 +86,8 @@ export const LocationReviewBottomSheet = React.forwardRef<
     ]).start();
   };
 
-  const open = () => {
+  const open = useCallback(() => {
     setVisible(true);
-    setIsSubmitted(false);
     translateY.setValue(sheetHeight);
     backdropOpacity.setValue(0);
     Animated.parallel([
@@ -104,9 +102,9 @@ export const LocationReviewBottomSheet = React.forwardRef<
         useNativeDriver: true,
       }),
     ]).start();
-  };
+  }, [backdropOpacity, sheetHeight, translateY]);
 
-  const close = (onDone?: () => void) => {
+  const close = useCallback((onDone?: () => void) => {
     Animated.parallel([
       Animated.timing(translateY, {
         toValue: sheetHeight,
@@ -122,7 +120,7 @@ export const LocationReviewBottomSheet = React.forwardRef<
       setVisible(false);
       onDone?.();
     });
-  };
+  }, [backdropOpacity, sheetHeight, translateY]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -157,7 +155,6 @@ export const LocationReviewBottomSheet = React.forwardRef<
         setRating(0);
         setContent('');
         setShowError(false);
-        setIsSubmitted(false);
         resetImages();
       });
     } finally {
@@ -177,7 +174,7 @@ export const LocationReviewBottomSheet = React.forwardRef<
         else close();
       },
     }),
-    [sheetHeight],
+    [close, open],
   );
 
   return (

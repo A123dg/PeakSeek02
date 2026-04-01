@@ -11,6 +11,7 @@ export interface ReviewRow {
   status: ReviewStatus;
   createdAt: string;
   statusCode: number;
+  mediaLinkUrls?: string[];
 }
 
 export const useReviewData = (filter?: { page?: number; pageSize?: number }) => {
@@ -31,6 +32,7 @@ export const useReviewData = (filter?: { page?: number; pageSize?: number }) => 
       status: item.statusName,
       createdAt: item.createdAt,
       statusCode: item.status,
+      mediaLinkUrls: item.mediaLinkUrls ?? [],
     })) ?? [];
 
   return {

@@ -4,11 +4,12 @@ import { Palette } from '@/components/app/palette';
 
 type TagPillProps = {
   label: string;
+  activeTab?: boolean;
 };
 
-export function TagPill({ label }: TagPillProps) {
+export function TagPill({ label, activeTab }: TagPillProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, activeTab && styles.activeContainer]}>
       <Text style={styles.text}>{label}</Text>
     </View>
   );
@@ -26,4 +27,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  activeContainer: {
+    backgroundColor: Palette.primary,
+  },
+  
 });

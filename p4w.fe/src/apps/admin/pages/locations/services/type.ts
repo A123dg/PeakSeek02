@@ -8,14 +8,14 @@ export interface ILocationListParams {
 
 export interface ILocationPayload {
   ownerId?: string | null;
-  locationName: string;
+  locationName?: string;
   description?: string;
-  address: string;
+  address?: string;
   addressLink?: string;
   openingHours?: string;
   closingHours?: string;
-  type: number;
-  status: number;
+  type?: number;
+  status?: number;
 }
 
 export interface ILocationResponse {
@@ -31,4 +31,6 @@ export interface ILocationResponse {
   closingHours?: string | null;
   status: number;
   statusName: string;
+  mediaLinkUrls?: string[];
+  pendingMediaLinkUrls?: string[];
 }

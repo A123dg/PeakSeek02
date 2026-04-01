@@ -21,4 +21,5 @@ export interface IReviewResponse {
   status: number;
   statusName: string;
   createdAt: string;
+  mediaLinkUrls?: string[];
 }

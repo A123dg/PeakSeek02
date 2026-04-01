@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -39,9 +39,9 @@ type ProfileLocationFormProps = {
 
 const typeOptions = [
   { label: "Coworking", value: "1" },
-  { label: "Thu vien", value: "2" },
-  { label: "Ca phe", value: "3" },
-  { label: "Ngoai troi", value: "4" },
+  { label: "Thư viện", value: "2" },
+  { label: "Cà phê", value: "3" },
+  { label: "Ngoài trời", value: "4" },
 ];
 
 export const ProfileLocationForm = ({
@@ -108,21 +108,21 @@ export const ProfileLocationForm = ({
               <Ionicons name="business-outline" size={18} color="#FFFFFF" />
             </View>
             <View style={styles.bannerCopy}>
-              <Text style={styles.bannerTitle}>Thong tin dia diem</Text>
-              <Text style={styles.bannerSub}>Nhap day du thong tin de gui cho he thong xu ly.</Text>
+              <Text style={styles.bannerTitle}>Thông tin địa điểm</Text>
+              <Text style={styles.bannerSub}>Nhập đầy đủ thông tin để gửi cho hệ thống xử lý.</Text>
             </View>
           </View>
 
           <View style={styles.card}>
             <View style={styles.mediaHeader}>
               <View style={styles.mediaCopy}>
-                <Text style={styles.cardTitle}>Anh dia diem</Text>
-                <Text style={styles.helperText}>Anh thu 1 se duoc xem la anh chinh. Toi da 5 anh.</Text>
+                <Text style={styles.cardTitle}>Ảnh địa điểm</Text>
+                <Text style={styles.helperText}>Ảnh thứ 1 sẽ được xem là ảnh chính. Tối đa 5 ảnh.</Text>
               </View>
 
               <Pressable style={styles.mediaButton} onPress={() => void pickImages()} disabled={loading}>
                 <Ionicons name="images-outline" size={16} color="#FFFFFF" />
-                <Text style={styles.mediaButtonText}>{loading ? "Dang tai..." : "Chon anh"}</Text>
+                <Text style={styles.mediaButtonText}>{loading ? "Đang tải..." : "Chọn ảnh"}</Text>
               </Pressable>
             </View>
 
@@ -136,8 +136,8 @@ export const ProfileLocationForm = ({
                   <View key={`${uri}-${index}`} style={styles.previewItem}>
                     <Image source={{ uri }} style={styles.previewImage} />
                     <View style={styles.previewMeta}>
-                      <Text style={styles.previewOrder}>Anh {index + 1}</Text>
-                      {index === 0 ? <Text style={styles.previewPrimary}>Anh chinh</Text> : null}
+                      <Text style={styles.previewOrder}>Ảnh {index + 1}</Text>
+                      {index === 0 ? <Text style={styles.previewPrimary}>Ảnh chính</Text> : null}
                     </View>
                     <Pressable style={styles.removeBadge} onPress={() => removeImage(uri)}>
                       <Ionicons name="close" size={14} color="#FFFFFF" />
@@ -146,38 +146,38 @@ export const ProfileLocationForm = ({
                 ))}
               </ScrollView>
             ) : (
-              <Text style={styles.helperText}>Chua co anh nao. Ban co the bo qua neu chua can.</Text>
+              <Text style={styles.helperText}>Chưa có ảnh nào. Bạn có thể bỏ qua nếu chưa cần.</Text>
             )}
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Thong tin co ban</Text>
+            <Text style={styles.cardTitle}>Thông tin cơ bản</Text>
 
             <InputBlock
-              label="Ten dia diem"
+              label="Tên địa điểm"
               value={locationName}
               onChangeText={setLocationName}
-              placeholder="Nhap ten dia diem"
+              placeholder="Nhập tên địa điểm"
             />
 
             <InputBlock
-              label="Mo ta"
+              label="Mô tả"
               value={description}
               onChangeText={setDescription}
-              placeholder="Mo ta ngan ve dia diem"
+              placeholder="Mô tả ngắn về địa điểm"
               multiline
             />
 
             <InputBlock
-              label="Dia chi"
+              label="Địa chỉ"
               value={address}
               onChangeText={setAddress}
-              placeholder="Nhap dia chi..."
+              placeholder="Nhập địa chỉ..."
               multiline
             />
 
             <InputBlock
-              label="Link ban do"
+              label="Link bản đồ"
               value={addressLink}
               onChangeText={setAddressLink}
               placeholder="https://maps.google.com/..."
@@ -185,7 +185,7 @@ export const ProfileLocationForm = ({
             />
 
             <View style={styles.typeSection}>
-              <Text style={styles.inputLabel}>Loai dia diem</Text>
+              <Text style={styles.inputLabel}>Loại địa điểm</Text>
               <View style={styles.typeGrid}>
                 {typeOptions.map((option) => {
                   const selected = type === option.value;
@@ -206,16 +206,16 @@ export const ProfileLocationForm = ({
 
             <View style={styles.hoursRow}>
               <View style={styles.flex}>
-                <TimePickerUI label="Mo cua luc" value={openingHours} onConfirm={setOpeningHours} />
+                <TimePickerUI label="Mở cửa lúc" value={openingHours} onConfirm={setOpeningHours} />
               </View>
               <View style={styles.flex}>
-                <TimePickerUI label="Dong cua luc" value={closingHours} onConfirm={setClosingHours} />
+                <TimePickerUI label="Đóng cửa lúc" value={closingHours} onConfirm={setClosingHours} />
               </View>
             </View>
 
             <View style={styles.helperRow}>
               <Ionicons name="information-circle-outline" size={14} color="#64748B" />
-              <Text style={styles.helperText}>Dinh dang gio: hh:mm:ss. Vi du: 08:00:00</Text>
+              <Text style={styles.helperText}>Định dạng giờ: hh:mm:ss. Ví dụ: 08:00:00</Text>
             </View>
           </View>
 
@@ -225,7 +225,7 @@ export const ProfileLocationForm = ({
               disabled={!canSave || isSubmitting}
               onPress={() => void handleSubmit()}
             >
-              <Text style={styles.saveText}>{isSubmitting ? "Dang xu ly..." : submitLabel}</Text>
+              <Text style={styles.saveText}>{isSubmitting ? "Đang xử lý..." : submitLabel}</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -508,3 +508,4 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 });
+

@@ -13,6 +13,7 @@ import {
   registerApi,
   updateProfileApi,
 } from "@/services/api";
+import { resolveServerMessage } from "@/services/serverMessage";
 
 type Session = {
   accessToken: string;
@@ -58,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const authorizedRequest = useCallback(async <T,>(handler: (token: string) => Promise<T>) => {
     if (!session?.accessToken) {
-      throw new ApiError("Unauthorized", 401);
+      throw new ApiError(resolveServerMessage("Common_401"), 401);
     }
 
     try {

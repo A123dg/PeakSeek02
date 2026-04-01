@@ -1,6 +1,5 @@
-import React, { useImperativeHandle, useMemo, useRef, useState } from 'react';
+﻿import React, { useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   Animated,
   Keyboard,
   Modal,
@@ -17,10 +16,10 @@ import {
 import { Palette } from '@/components/app/palette';
 
 const reasons = [
-  'Noi dung khong phu hop',
-  'Spam / Quang cao',
-  'Thong tin sai lech',
-  'Khac',
+  'Nội dung không phù hợp',
+  'Spam / Quảng cáo',
+  'Thông tin sai lệch',
+  'Khác',
 ];
 
 export type ReportBottomSheetRef = {
@@ -212,7 +211,6 @@ export const ReportBottomSheet = React.forwardRef<ReportBottomSheetRef, ReportBo
                 onPress={async () => {
                   if (!selected) return;
                   onSubmitPress?.({ reason: selected, note });
-                  await Alert.alert("Cảm ơn bạn đã gửi báo cáo cho chúng tôi")
                 }}
               >
                 <Text style={styles.submitText} >Gui bao cao</Text>
@@ -339,3 +337,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+

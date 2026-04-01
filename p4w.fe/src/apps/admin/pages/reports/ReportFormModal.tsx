@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Form, Input, Select } from "antd";
 
 import ModalForm from "@shared/components/modal/ModalForm";
+import { formatDate } from "@/shared/utils/formatDate";
 
 type ReportFormModalMode = "view" | "approve" | "reject";
 type ReportStatus = "pending" | "approved" | "rejected";
@@ -47,7 +48,7 @@ export function ReportFormModal({
           reason: data.reason,
           description: data.description,
           evidence: data.evidence,
-          createdAt: data.createdAt,
+          createdAt: data.createdAt ? formatDate(data.createdAt) : undefined,
           status: data.status,
         });
       } else {

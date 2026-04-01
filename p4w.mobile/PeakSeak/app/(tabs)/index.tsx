@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, View, Image, Pressable, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 import { Palette } from "@/components/app/palette";
 import { PlaceCard } from "@/components/app/PlaceCard";
 import { SearchInput } from "@/components/app/SearchInput";
@@ -11,28 +10,28 @@ import { TagPill } from "@/components/app/TagPill";
 import { getLocationsApi, type LocationCard } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 
-const categories = ["Tat ca", "Coworking", "Thu vien", "Ca phe", "Ngoai troi"];
+const categories = ["Tất cả", "Coworking", "Thư viện", "Cà phê", "Ngoài trời"];
 
 const getTypeLabel = (type: number) => {
   switch (type) {
     case 1:
       return "Coworking";
     case 2:
-      return "Thu vien";
+      return "Thư viện";
     case 3:
-      return "Ca phe";
+      return "Cà phê";
     default:
-      return "Dia diem";
+      return "Địa điểm";
   }
 };
 
 const toPlaceCardProps = (location: LocationCard) => ({
   title: location.locationName,
   area: location.address,
-  price: location.openingHours && location.closingHours ? `${location.openingHours} - ${location.closingHours}` : "Dang cap nhat",
+  price: location.openingHours && location.closingHours ? `${location.openingHours} - ${location.closingHours}` : "Đang cập nhật",
   rating: location.averageRating || 0,
   imageUrl: location.mediaLinkUrls?.[0] || `https://picsum.photos/seed/${location.id}/600/400`,
-  tags: [getTypeLabel(location.type), `${location.reviewCount} danh gia`],
+  tags: [getTypeLabel(location.type), `${location.reviewCount} đánh giá`],
 });
 
 export default function HomeScreen() {
@@ -41,19 +40,44 @@ export default function HomeScreen() {
   const [locations, setLocations] = useState<LocationCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
+  const [searchValue, setSearchValue] = useState("");
+  const [currentCategory, setCurrentCategory] = useState(0);
+  const [recallList, setRecallList] = useState<number>(0);
   const loadLocations = useCallback(async () => {
     try {
-      const response = await getLocationsApi();
+      const response = await getLocationsApi(searchValue, currentCategory);
       setLocations(response.data);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [searchValue, currentCategory]);
 
   useEffect(() => {
     void loadLocations();
-  }, [loadLocations]);
+  }, [recallList]);
+
+  const handleCategoryPress = (category: number) => {
+    console.log("category", category);
+    setCurrentCategory(category);
+    setRecallList(new Date().getTime());
+  };
+
+  const handleSearchChange = (text: string) => {
+    setSearchValue(text);
+    debounceSearch(text);
+  };
+
+  const debounceRef = useRef<any>(null);
+
+  const debounceSearch = (value: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      setRecallList(Date.now());
+    }, 500);
+  };
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -65,7 +89,26 @@ export default function HomeScreen() {
   }, [loadLocations]);
 
   const featuredPlaces = useMemo(() => locations.slice(0, 3), [locations]);
-  const nearbyPlaces = useMemo(() => locations.slice(0, 5), [locations]);
+  const recentLocation = useMemo(() => {
+    if (!profile?.recentLocation) {
+      return null;
+    }
+
+    const matchedLocation = locations.find((location) => location.id === profile.recentLocation?.id);
+
+    return {
+      id: profile.recentLocation.id,
+      title: profile.recentLocation.locationName || "Địa điểm gần đây",
+      area: profile.recentLocation.address || "Đang cập nhật địa chỉ",
+      price: "Gần đây",
+      rating: matchedLocation?.averageRating || 0,
+      imageUrl:
+        profile.recentLocation.mediaLinkUrls?.[0] ||
+        `https://picsum.photos/seed/recent-${profile.recentLocation.id}/600/400`,
+      tags: ["Gần đây"],
+    };
+  }, [locations, profile?.recentLocation]);
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -76,8 +119,8 @@ export default function HomeScreen() {
       >
         <View style={styles.heroRow}>
           <View style={styles.heroText}>
-            <Text style={styles.greeting}>Xin chao, {profile?.userName ?? "ban"}</Text>
-            <Text style={styles.subGreeting}>Hom nay ban muon hoc o dau?</Text>
+            <Text style={styles.greeting}>Xin chào, {profile?.userName ?? "bạn"}</Text>
+            <Text style={styles.subGreeting}>Hôm nay bạn muốn học ở đâu?</Text>
           </View>
 
           <Pressable
@@ -95,10 +138,12 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        <SearchInput placeholder="Tim kiem quan ca phe, thu vien, coworking..." />
+        <SearchInput value={searchValue} onChangeText={handleSearchChange} placeholder="Tìm kiếm quán cà phê, thư viện, coworking..." />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
-          {categories.map((category) => (
-            <TagPill key={category} label={category} />
+          {categories.map((category, index) => (
+            <Pressable key={category} onPress={() => handleCategoryPress(index)}>
+              <TagPill key={category} label={category} activeTab={currentCategory === index} />
+            </Pressable>
           ))}
         </ScrollView>
 
@@ -106,26 +151,31 @@ export default function HomeScreen() {
           <ActivityIndicator color={Palette.primary} />
         ) : (
           <>
-            <View style={styles.section}>
-              <SectionHeader title="Gan day" />
-              <View style={styles.verticalList}>
-                {nearbyPlaces.map((place) => (
+            {recentLocation && (
+              <View style={styles.section}>
+                <SectionHeader title="Gần đây" />
+                <View style={styles.verticalList}>
                   <PlaceCard
-                    key={place.id}
-                    {...toPlaceCardProps(place)}
+                    title={recentLocation.title}
+                    area={recentLocation.area}
+                    price={recentLocation.price}
+                    rating={recentLocation.rating}
+                    imageUrl={recentLocation.imageUrl}
+                    tags={recentLocation.tags}
                     layout="horizontal"
                     onPressCard={() =>
                       router.push({
                         pathname: "/location/location-info",
-                        params: { locationId: place.id },
+                        params: { locationId: recentLocation.id },
                       })
                     }
                   />
-                ))}
+                </View>
               </View>
-            </View>
+            )}
+            {featuredPlaces.length > 0 && (
             <View style={styles.section}>
-              <SectionHeader title="Tat ca dia diem" />
+              <SectionHeader title="Tất cả địa điểm" />
               <View style={styles.list}>
                 {featuredPlaces.map((place) => (
                   <PlaceCard
@@ -142,6 +192,10 @@ export default function HomeScreen() {
                 ))}
               </View>
             </View>
+            )}
+            {locations.length === 0 && (
+              <Text style={{ textAlign: "center", color: Palette.subtext, marginTop: 40 }}>Không tìm thấy địa điểm nào phù hợp</Text>
+            )}
           </>
         )}
       </ScrollView>
@@ -209,3 +263,4 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 });
+

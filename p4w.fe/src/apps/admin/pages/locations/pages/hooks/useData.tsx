@@ -16,6 +16,8 @@ export interface LocationRow {
   ownerId?: string | null;
   ownerName?: string | null;
   addressLink?: string;
+  mediaLinkUrls?: string[];
+  pendingMediaLinkUrls?: string[];
 }
 
 const locationTypeMap: Record<number, string> = {
@@ -50,6 +52,8 @@ export const useLocationData = (filter?: { page?: number; pageSize?: number }) =
       ownerId: item.ownerId,
       ownerName: item.ownerName,
       addressLink: item.addressLink ?? undefined,
+      mediaLinkUrls: item.mediaLinkUrls ?? [],
+      pendingMediaLinkUrls: item.pendingMediaLinkUrls ?? [],
     })) ?? [];
 
   return {

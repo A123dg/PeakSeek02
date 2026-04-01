@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+﻿import { useRouter } from "expo-router";
 import React from "react";
 import { Alert, SafeAreaView, StatusBar, StyleSheet, Text, View } from "react-native";
 import * as Linking from "expo-linking";
@@ -9,6 +9,7 @@ import { PrimaryButton } from "@/components/app/PrimaryButton";
 import { SocialButton } from "@/components/app/SocialButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL, type LoginResponse } from "@/services/api";
+import { resolveServerMessage } from "@/services/serverMessage";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -17,7 +18,7 @@ const mobileRedirectUri = Linking.createURL("/auth/login");
 
 const getGoogleConfigError = () => {
   if (!API_BASE_URL) {
-    return "Thieu EXPO_PUBLIC_API_URL.";
+    return "Thiếu EXPO_PUBLIC_API_URL.";
   }
   return null;
 };
@@ -33,7 +34,7 @@ const GoogleLoginButton = ({ isLoading, onGoogleLoginRedirect }: GoogleLoginButt
   const handleGoogleLogin = async () => {
     try {
       if (googleConfigError) {
-        Alert.alert("Cau hinh Google chua hop le", googleConfigError);
+        Alert.alert("Cấu hình Google chưa hợp lệ", googleConfigError);
         return;
       }
 
@@ -49,22 +50,22 @@ const GoogleLoginButton = ({ isLoading, onGoogleLoginRedirect }: GoogleLoginButt
         return;
       }
 
-      Alert.alert("Dang nhap Google that bai", "Khong nhan duoc phan hoi redirect tu backend.");
+      Alert.alert("Đăng nhập Google thất bại", "Không nhận được phản hồi redirect từ backend.");
     } catch (error) {
       Alert.alert(
-        "Dang nhap Google that bai",
-        error instanceof Error ? error.message : "Co loi xay ra"
+        "Đăng nhập Google thất bại",
+        error instanceof Error ? error.message : "Có lỗi xảy ra"
       );
     }
   };
 
   return (
     <SocialButton
-      label={isLoading ? "Dang xu ly..." : "Dang nhap voi Google"}
+      label={isLoading ? "Đang xử lý..." : "Đăng nhập với Google"}
       icon={require("../../../assets/google/google_icon.png")}
       onPress={
         googleConfigError
-          ? () => Alert.alert("Cau hinh Google chua hop le", googleConfigError)
+          ? () => Alert.alert("Cấu hình Google chưa hợp lệ", googleConfigError)
           : handleGoogleLogin
       }
     />
@@ -80,7 +81,10 @@ export const Login = () => {
   const handleGoogleLoginRedirect = React.useCallback(async (redirectUrl: string) => {
     const { queryParams } = Linking.parse(redirectUrl);
     const success = `${queryParams?.success ?? ""}`.toLowerCase() === "true";
-    const message = typeof queryParams?.message === "string" ? queryParams.message : "Co loi xay ra";
+    const message =
+      typeof queryParams?.message === "string"
+        ? resolveServerMessage(queryParams.message)
+        : "Có lỗi xảy ra";
 
     if (!success) {
       throw new Error(message);
@@ -92,7 +96,7 @@ export const Login = () => {
       typeof queryParams?.refreshToken === "string" ? queryParams.refreshToken : undefined;
 
     if (!accessToken || !refreshToken) {
-      throw new Error("Backend redirect khong tra ve du access token va refresh token.");
+      throw new Error("Backend redirect không trả về đủ access token và refresh token.");
     }
 
     await applyLoginResponse({
@@ -128,8 +132,8 @@ export const Login = () => {
 
     void handleGoogleLoginRedirect(incomingUrl).catch((error) => {
       Alert.alert(
-        "Dang nhap Google that bai",
-        error instanceof Error ? error.message : "Co loi xay ra"
+        "Đăng nhập Google thất bại",
+        error instanceof Error ? error.message : "Có lỗi xảy ra"
       );
     });
   }, [handleGoogleLoginRedirect, incomingUrl]);
@@ -140,13 +144,13 @@ export const Login = () => {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.brand}>PeakSeek</Text>
-          <Text style={styles.tagline}>Tim dia diem hoc tap va lam viec ly tuong</Text>
+          <Text style={styles.tagline}>Tìm địa điểm học tập và làm việc lý tưởng</Text>
         </View>
 
         <View style={styles.buttonContainer}>
           <GoogleLoginButton isLoading={isLoading} onGoogleLoginRedirect={handleGoogleLoginRedirect} />
           <PrimaryButton
-            label="Dang nhap voi tu cach khach"
+            label="Đăng nhập với tư cách khách"
             variant="ghost"
             onPress={() => router.push("/(tabs)")}
           />
@@ -207,3 +211,4 @@ const styles = StyleSheet.create({
     gap: 16,
   },
 });
+

@@ -421,7 +421,12 @@ query = query.Where(x =>
                 Content = x.Content,
                 Status = x.Status,
                 StatusName = x.Status == ReviewStatuses.Active ? "active" : "inactive",
-                CreatedAt = x.CreatedAt
+                CreatedAt = x.CreatedAt,
+                MediaLinkUrls = _context.MediaLinks
+                    .Where(m => m.EntityType == "review" && m.EntityId == x.Id)
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => m.Media.Url)
+                    .ToList()
             })
             .ToListAsync();
 
@@ -455,7 +460,12 @@ query = query.Where(x =>
                 Content = x.Content,
                 Status = x.Status,
                 StatusName = x.Status == ReviewStatuses.Active ? "active" : "inactive",
-                CreatedAt = x.CreatedAt
+                CreatedAt = x.CreatedAt,
+                MediaLinkUrls = _context.MediaLinks
+                    .Where(m => m.EntityType == "review" && m.EntityId == x.Id)
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => m.Media.Url)
+                    .ToList()
             })
             .FirstOrDefaultAsync();
     }

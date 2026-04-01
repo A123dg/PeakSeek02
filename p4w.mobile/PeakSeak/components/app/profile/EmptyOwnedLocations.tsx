@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -8,7 +8,7 @@ type EmptyOwnedLocationsProps = {
 };
 
 export const EmptyOwnedLocations = ({
-  title = "Chua co dia diem nao",
+  title = "Chưa có địa điểm nào",
   description,
 }: EmptyOwnedLocationsProps) => (
   <View style={styles.card}>
@@ -41,3 +41,4 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
 });
+

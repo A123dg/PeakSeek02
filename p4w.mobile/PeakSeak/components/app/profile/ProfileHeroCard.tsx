@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -31,8 +31,8 @@ export const ProfileHeroCard = ({
       </View>
     </TouchableOpacity>
 
-    <Text style={styles.name}>{userName ?? "Khach"}</Text>
-    <Text style={styles.email}>{email ?? "Ban chua dang nhap"}</Text>
+    <Text style={styles.name}>{userName ?? "Khách"}</Text>
+    <Text style={styles.email}>{email ?? "Bạn chưa đăng nhập"}</Text>
 
     {menu}
   </View>
@@ -95,3 +95,4 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
+

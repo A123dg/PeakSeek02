@@ -1,7 +1,6 @@
-import React, { useCallback, useState } from "react";
-import { RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+﻿import React, { useCallback, useState } from "react";
+import { RefreshControl, SafeAreaView, ScrollView, StyleSheet,  View } from "react-native";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
 import { EmptyOwnedLocations } from "@/components/app/profile/EmptyOwnedLocations";
 import { OwnedLocationCard } from "@/components/app/profile/OwnedLocationCard";
@@ -39,8 +38,8 @@ export default function ProfileLocationInfoScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <OwnedLocationsScreenHeader
-        title="Dia diem cua ban"
-        subtitle="Danh sach dia diem dang gan voi tai khoan hien tai"
+        title="Địa điểm của bạn"
+        subtitle="Danh sách địa điểm đang gắn với tài khoản hiện tại"
         onAddPress={() => router.push("/(tabs)/profile/location-register")}
       />
 
@@ -55,12 +54,12 @@ export default function ProfileLocationInfoScreen() {
           </View>
           <View style={styles.summaryTextWrap}>
             <Text style={styles.summaryTitle}>
-              {ownedLocations.length > 0 ? `${ownedLocations.length} dia diem dang so huu` : "Dang ky dia diem moi"}
+              {ownedLocations.length > 0 ? `${ownedLocations.length} địa điểm đang sở hữu` : "Đăng ký địa điểm mới"}
             </Text>
             <Text style={styles.summaryDescription}>
               {ownedLocations.length > 0
-                ? "Danh sach ben duoi duoc lay tu thong tin profile cua tai khoan hien tai."
-                : "Ban co the tao dia diem moi bang nut them o phia tren."}
+                ? "Danh sách bên dưới được lấy từ thông tin profile của tài khoản hiện tại."
+                : "Bạn có thể tạo địa điểm mới bằng nút thêm ở phía trên."}
             </Text>
           </View>
         </View> */}
@@ -70,14 +69,14 @@ export default function ProfileLocationInfoScreen() {
             {ownedLocations.map((location) => (
               <OwnedLocationCard
                 key={location.id}
-                actionLabel="Cap nhat"
+                actionLabel="Cập nhật"
                 location={location}
                 onActionPress={handleUpdatePress}
               />
             ))}
           </View>
         ) : (
-          <EmptyOwnedLocations description="Ban co the tao dia diem moi bang nut them o phia tren." />
+          <EmptyOwnedLocations description="Bạn có thể tạo địa điểm mới bằng nút thêm ở phía trên." />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -130,3 +129,4 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 });
+

@@ -6,6 +6,8 @@ import { INVALID_CONFIRM_PASSWORD, INVALID_PASSWORD } from "@/constants/rules/me
 import { PASSWORD_PATTERN } from "@/constants/rules/pattern";
 import useNotification from "@/shared/hooks/useNotification";
 import { useUpdateProfile } from "@/shared/services/mutation";
+import { formatDate } from "@/shared/utils/formatDate";
+import { resolveServerMessage } from "@/shared/utils/serverMessage";
 import {
   AvatarShell,
   FieldLabel,
@@ -62,15 +64,6 @@ const renderValue = (value?: string | number | null) => {
   return String(value);
 };
 
-const formatDate = (value?: string) => {
-  if (!value) {
-    return "Chua cap nhat";
-  }
-
-  const parsed = dayjs(value);
-  return parsed.isValid() ? parsed.format("DD/MM/YYYY") : value;
-};
-
 const formatStatus = (value?: number) => {
   switch (value) {
     case 1:
@@ -94,7 +87,7 @@ const InfoField = ({ label, value }: { label: string; value?: string | number | 
 const InfoFieldDate = ({ label, value }: { label: string; value?: string }) => (
   <FieldWrap>
     <FieldLabel>{label}</FieldLabel>
-    <FieldValue>{formatDate(value)}</FieldValue>
+    <FieldValue>{value ? formatDate(value) : "Chua cap nhat"}</FieldValue>
   </FieldWrap>
 );
 
@@ -167,7 +160,7 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
         return;
       }
 
-      showErrorNotify(error?.data?.message || error?.message || "Co loi xay ra");
+      showErrorNotify(resolveServerMessage(error?.data?.message || error?.message) || "Co loi xay ra");
     }
   };
 

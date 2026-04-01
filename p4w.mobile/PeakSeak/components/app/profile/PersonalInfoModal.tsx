@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -39,7 +39,7 @@ export const PersonalInfoModal = ({
       <View style={styles.card}>
         <View style={styles.handle} />
         <View style={styles.header}>
-          <Text style={styles.title}>Cap nhat thong tin</Text>
+          <Text style={styles.title}>Cập nhật thông tin</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={20} color="#334155" />
           </TouchableOpacity>
@@ -59,15 +59,15 @@ export const PersonalInfoModal = ({
                 <Ionicons name="camera" size={16} color="#FFFFFF" />
               </View>
             </TouchableOpacity>
-            <Text style={styles.avatarHint}>Chon anh dai dien moi</Text>
+            <Text style={styles.avatarHint}>Chọn ảnh đại diện mới</Text>
           </View>
 
-          <Field label="Ten nguoi dung">
+          <Field label="Tên người dùng">
             <TextInput
               value={draftName}
               onChangeText={onNameChange}
               style={styles.input}
-              placeholder="Nhap ten nguoi dung"
+              placeholder="Nhập tên người dùng"
               placeholderTextColor="#94A3B8"
             />
           </Field>
@@ -84,14 +84,14 @@ export const PersonalInfoModal = ({
             />
           </Field>
 
-          <DatePickerUI label="Ngay sinh" value={draftDob} onConfirm={onDateChange} maximumDate={new Date()} />
+          <DatePickerUI label="Ngày sinh" value={draftDob} onConfirm={onDateChange} maximumDate={new Date()} />
 
           <TouchableOpacity
             style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
             onPress={onSave}
             disabled={isLoading}
           >
-            <Text style={styles.saveButtonText}>{isLoading ? "Dang luu..." : "Cap nhat thong tin"}</Text>
+            <Text style={styles.saveButtonText}>{isLoading ? "Đang lưu..." : "Cập nhật thông tin"}</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -233,3 +233,4 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 });
+

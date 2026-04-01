@@ -1,10 +1,11 @@
-import { EyeOutlined } from "@ant-design/icons";
-import { Button, Space, Tag, Tooltip } from "antd";
+import { CheckOutlined, EyeOutlined, LinkOutlined } from "@ant-design/icons";
+import { Button, Image, Space, Tag, Tooltip, Typography } from "antd";
 
 import type { LocationRow, LocationStatus } from "./useData";
 
 type UseLocationColumnsProps = {
   handleOpenViewModal: (record: LocationRow) => void;
+  handleApproveLocation: (record: LocationRow) => void;
 };
 
 const statusMeta: Record<LocationStatus, { label: string; color: string; bg: string }> = {
@@ -17,6 +18,7 @@ const statusMeta: Record<LocationStatus, { label: string; color: string; bg: str
 
 export const useLocationColumns = ({
   handleOpenViewModal,
+  handleApproveLocation,
 }: UseLocationColumnsProps) => {
   const columns = [
     {
@@ -35,6 +37,33 @@ export const useLocationColumns = ({
       dataIndex: "address",
       key: "address",
       ellipsis: true,
+    },
+    {
+      title: "Media URL",
+      dataIndex: "mediaLinkUrls",
+      key: "mediaLinkUrls",
+      width: 220,
+      render: (mediaLinkUrls?: string[]) => {
+        const firstMedia = mediaLinkUrls?.[0];
+        if (!firstMedia) {
+          return <span>--</span>;
+        }
+
+        return (
+          <Space size={8}>
+            <Image
+              src={firstMedia}
+              width={40}
+              height={40}
+              style={{ objectFit: "cover", borderRadius: 10 }}
+              fallback="data:image/gif;base64,R0lGODlhAQABAAAAACw="
+            />
+            <Typography.Link href={firstMedia} target="_blank" ellipsis style={{ maxWidth: 140 }}>
+              <LinkOutlined /> Xem media
+            </Typography.Link>
+          </Space>
+        );
+      },
     },
     {
       title: "Gio mo cua",
@@ -70,6 +99,18 @@ export const useLocationColumns = ({
       width: 100,
       render: (_: unknown, record: LocationRow) => (
         <Space size={4}>
+          {record.status === "pending" && (
+            <Tooltip title="Duyet dia diem" color="var(--primary)">
+              <Button
+                size="small"
+                type="text"
+                shape="circle"
+                style={{ color: "#16a34a" }}
+                icon={<CheckOutlined />}
+                onClick={() => handleApproveLocation(record)}
+              />
+            </Tooltip>
+          )}
           <Tooltip title="Xem chi tiet" color="var(--primary)">
             <Button
               size="small"

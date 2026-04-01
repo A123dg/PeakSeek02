@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
@@ -13,13 +13,13 @@ export const useImagePicker = (initialImages: string[] = [], maxImages = 5) => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== "granted") {
-        Alert.alert("Can cap quyen", "Ung dung can quyen truy cap thu vien anh cua ban.");
+        Alert.alert("Cần cấp quyền", "Ứng dụng cần quyền truy cập thư viện ảnh của bạn.");
         return;
       }
 
       const remainingSlots = maxImages - images.length;
       if (remainingSlots <= 0) {
-        Alert.alert("Gioi han anh", `Ban chi duoc gui toi da ${maxImages} anh.`);
+        Alert.alert("Giới hạn ảnh", `Bạn chỉ được gửi tối đa ${maxImages} ảnh.`);
         return;
       }
 
@@ -35,14 +35,14 @@ export const useImagePicker = (initialImages: string[] = [], maxImages = 5) => {
         setImages((prev) => {
           const merged = [...prev, ...nextUris.filter((uri) => !prev.includes(uri))].slice(0, maxImages);
           if (merged.length >= maxImages) {
-            Alert.alert("Gioi han anh", `Ban chi duoc gui toi da ${maxImages} anh.`);
+            Alert.alert("Giới hạn ảnh", `Bạn chỉ được gửi tối đa ${maxImages} ảnh.`);
           }
 
           return merged;
         });
       }
     } catch {
-      Alert.alert("Loi", "Khong the chon anh.");
+      Alert.alert("Lỗi", "Không thể chọn ảnh.");
     } finally {
       setLoading(false);
     }
@@ -56,3 +56,4 @@ export const useImagePicker = (initialImages: string[] = [], maxImages = 5) => {
 
   return { images, pickImages, removeImage, resetImages, loading };
 };
+

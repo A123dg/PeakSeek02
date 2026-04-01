@@ -5,6 +5,7 @@ import {
   DownOutlined,
   EnvironmentOutlined,
   FileSearchOutlined,
+  HomeOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   MessageOutlined,
@@ -12,6 +13,7 @@ import {
 } from '@ant-design/icons';
 import styled, { css } from 'styled-components';
 import {
+  ADMIN_BASE_ROUTE,
   ADMIN_LOCATIONS_ROUTE,
   ADMIN_REPORTS_ROUTE,
   ADMIN_REVIEWS_ROUTE,
@@ -33,6 +35,11 @@ type AdminHeaderUser = {
 } & Partial<IUserProfileResponse>;
 
 const navigationItems = [
+  {
+    to: ADMIN_BASE_ROUTE,
+    label: 'Tong quan',
+    icon: HomeOutlined,
+  },
   {
     to: ADMIN_REVIEWS_ROUTE,
     label: 'Đánh giá',
@@ -741,4 +748,3 @@ export default function AdminLayout({ title, subtitle }: AdminLayoutProps) {
     </LayoutWrapper>
   );
 }
-

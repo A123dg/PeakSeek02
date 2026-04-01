@@ -1,3 +1,5 @@
+import { resolveServerMessage } from "@/services/serverMessage";
+
 export type ApiResponse<T> = {
   code: number;
   success: boolean;
@@ -103,6 +105,19 @@ export type Review = {
   content: string;
   createdAt: string;
   commentCount: number;
+  mediaLinkUrls?: string[];
+};
+
+export type Comment = {
+  id: string;
+  userId: string;
+  userName: string;
+  avatarUrl: string;
+  parentId?: string | null;
+  content: string;
+  createdAt: string;
+  mediaLinkUrl?: string | null;
+  children: Comment[];
 };
 
 export type LocationDetail = {
@@ -135,6 +150,7 @@ export type UserProfile = {
     id: string;
     locationName: string;
     address?: string | null;
+    mediaLinkUrls?: string[];
   } | null;
   ownedLocations?: OwnedLocation[] | null;
 };
@@ -153,6 +169,14 @@ export type CreateReviewRequest = {
   locationId: string;
   rating: number;
   content: string;
+  mediaLinkUrls?: string[];
+};
+
+export type CreateCommentRequest = {
+  reviewId: string;
+  parentId?: string | null;
+  content: string;
+  mediaLinkUrl?: string;
 };
 
 export type CreateReportRequest = {
@@ -185,7 +209,7 @@ const parseResponse = async <T>(response: Response): Promise<ApiResponse<T>> => 
   const payload = text ? (JSON.parse(text) as ApiResponse<T>) : null;
 
   if (!response.ok || !payload?.success) {
-    throw new ApiError(payload?.message || "Request failed", response.status);
+    throw new ApiError(resolveServerMessage(payload?.message) || "Request failed", response.status);
   }
 
   return payload;
@@ -212,7 +236,7 @@ export const apiRequest = async <T>(path: string, options: RequestOptions = {}) 
     });
   } catch {
     throw new ApiError(
-      `Khong ket noi duoc API (${API_BASE_URL}). Hay kiem tra EXPO_PUBLIC_API_URL hoac backend co dang chay khong.`,
+      `Không kết nối được API (${API_BASE_URL}). Hãy kiểm tra EXPO_PUBLIC_API_URL hoặc backend có đang chạy không.`,
       0
     );
   }
@@ -270,14 +294,36 @@ export const getProfileApi = (token: string) =>
     token,
   });
 
-export const getLocationsApi = (search = "") =>
-  apiRequest<LocationCard[]>(`/Location${search ? `?search=${encodeURIComponent(search)}` : ""}`);
+export const getLocationsApi = (search = "", type?: number) => {
+  const params = new URLSearchParams();
 
+  if (search) params.append("search", search);
+  if (type) params.append("type", String(type));
+
+  const query = params.toString();
+
+  return apiRequest<LocationCard[]>(
+    `/Location${query ? `?${query}` : ""}`
+  );
+};
 export const getLocationDetailApi = (locationId: string) =>
   apiRequest<LocationDetail>(`/Location/${locationId}`);
 
+export const getLocationReviewsApi = (locationId: string, page = 1, pageSize = 10) =>
+  apiRequest<Review[]>(`/Location/${locationId}/reviews?page=${page}&pageSize=${pageSize}`);
+
+export const getReviewCommentsApi = (reviewId: string, page = 1, pageSize = 20) =>
+  apiRequest<Comment[]>(`/Location/reviews/${reviewId}/comments?page=${page}&pageSize=${pageSize}`);
+
 export const createReviewApi = (payload: CreateReviewRequest, token: string) =>
   apiRequest<Review>("/Location/reviews", {
+    method: "POST",
+    token,
+    body: JSON.stringify(payload),
+  });
+
+export const createCommentApi = (payload: CreateCommentRequest, token: string) =>
+  apiRequest<Comment>("/Location/comments", {
     method: "POST",
     token,
     body: JSON.stringify(payload),

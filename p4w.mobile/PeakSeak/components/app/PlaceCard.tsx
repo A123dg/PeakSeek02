@@ -18,7 +18,6 @@ type PlaceCardProps = {
 export function PlaceCard({
   title,
   area,
-  price,
   rating,
   imageUrl,
   tags,
@@ -40,7 +39,7 @@ export function PlaceCard({
           </View>
         </View>
         <Text style={styles.subtitle}>{area}</Text>
-        <Text style={styles.price}>{price}</Text>
+        {/* <Text style={styles.price}>{price}</Text> */}
         <View style={styles.tagRow}>
           {tags.map((tag) => (
             <TagPill key={tag} label={tag} />

@@ -26,8 +26,9 @@ export default function LocationList() {
     handleOpenViewModal,
     handleModalCancel,
     handleModalSubmit,
+    handleApproveLocation,
   } = useLocationActions();
-  const { columns } = useLocationColumns({ handleOpenViewModal });
+  const { columns } = useLocationColumns({ handleOpenViewModal, handleApproveLocation });
 
   return (
     <div style={{ fontSize: 14 }}>
@@ -121,6 +122,8 @@ export default function LocationList() {
                 closingHours: selectedLocation.closingHours,
                 description: selectedLocation.description,
                 status: selectedLocation.statusCode,
+                mediaLinkUrls: selectedLocation.mediaLinkUrls,
+                pendingMediaLinkUrls: selectedLocation.pendingMediaLinkUrls,
               }
             : undefined
         }

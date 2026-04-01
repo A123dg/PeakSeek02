@@ -1,6 +1,7 @@
 import { CheckOutlined, CloseOutlined, EyeOutlined } from "@ant-design/icons";
 import { Button, Space, Tag, Tooltip } from "antd";
 
+import { formatDate } from "@/shared/utils/formatDate";
 import type { ReportRow, ReportStatus, ReportType } from "./useData";
 
 type UseReportColumnsProps = {
@@ -59,6 +60,7 @@ export const useReportColumns = ({
       dataIndex: "createdAt",
       key: "createdAt",
       width: 140,
+      render: (value: string) => formatDate(value),
     },
     {
       title: "Trang thai",

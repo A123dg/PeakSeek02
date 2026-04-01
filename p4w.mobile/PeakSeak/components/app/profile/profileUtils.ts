@@ -1,6 +1,6 @@
-export const formatProfileDate = (value?: string | null) => {
+﻿export const formatProfileDate = (value?: string | null) => {
   if (!value) {
-    return "Chua cap nhat";
+    return "Chưa cập nhật";
   }
 
   const date = new Date(value);
@@ -14,16 +14,17 @@ export const formatProfileDate = (value?: string | null) => {
 export const normalizeLocationStatusLabel = (value?: string | null) => {
   switch (value?.toLowerCase()) {
     case "approved":
-      return "Da duyet";
+      return "Đã duyệt";
     case "pending":
-      return "Cho duyet";
+      return "Chờ duyệt";
     case "rejected":
-      return "Tu choi";
+      return "Từ chối";
     case "active":
-      return "Dang hoat dong";
+      return "Đang hoạt động";
     case "inactive":
-      return "Ngung hoat dong";
+      return "Ngừng hoạt động";
     default:
-      return value || "Khong ro";
+      return value || "Không rõ";
   }
 };
+

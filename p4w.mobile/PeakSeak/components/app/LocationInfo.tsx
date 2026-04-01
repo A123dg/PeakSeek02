@@ -1,4 +1,4 @@
-// import React from 'react';
+﻿// import React from 'react';
 // import { SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 // import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
@@ -7,22 +7,22 @@
 //     id: '1',
 //     title: 'Lan Anh 2 - truyen trade',
 //     stars: 5,
-//     time: '1 gio truoc',
-//     text: 'Khong gian yen tinh, wifi on dinh, ve sinh tot.',
+//     time: '1 giờ trước',
+//     text: 'Không gian yên tĩnh, wifi ổn định, vệ sinh tốt.',
 //   },
 //   {
 //     id: '2',
 //     title: 'Minh Tri 1 tieu thuoc',
 //     stars: 4,
-//     time: '3 ngay truoc',
+//     time: '3 ngày trước',
 //     text: 'Vi tri de tim, cho ngoi thoai mai, phuc vu nhanh.',
 //   },
 //   {
 //     id: '3',
 //     title: 'Ngoc Vy 6 - truyen thuoc',
 //     stars: 3,
-//     time: '5 ngay truoc',
-//     text: 'Khong gian on, gio cao diem hoi dong mot chut.',
+//     time: '5 ngày trước',
+//     text: 'Không gian ổn, giờ cao điểm hơi đông một chút.',
 //   },
 // ];
 
@@ -63,7 +63,7 @@
 //         </View>
 //         <Text style={[styles.category, { fontSize: textSize - 1 }]}>Coworking</Text>
 
-//         <Text style={[styles.meta, { fontSize: textSize - 1 }]}>12 Le Loi, Q1, TP.HCM</Text>
+//         <Text style={[styles.meta, { fontSize: textSize - 1 }]}>12 Le Lỗi, Q1, TP.HCM</Text>
 //         <Text style={[styles.desc, { fontSize: textSize, lineHeight: textSize * 1.45 }]}>
 //           Khong gian yen tinh, internet on dinh, nhieu o cam, ban ghe thoai mai cho hoc tap va lam viec nhom.
 //         </Text>
@@ -307,3 +307,4 @@
 //     marginTop: 2,
 //   },
 // });
+

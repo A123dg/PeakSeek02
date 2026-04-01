@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
@@ -42,7 +42,7 @@ export default function ProfileLocationUpdateScreen() {
     mediaUris: string[];
   }) => {
     if (!params.id) {
-      Alert.alert("Khong hop le", "Khong tim thay id dia diem de cap nhat.");
+      Alert.alert("Không hợp lệ", "Không tìm thấy id địa điểm để cập nhật.");
       return;
     }
 
@@ -62,7 +62,7 @@ export default function ProfileLocationUpdateScreen() {
                   type: "image/jpeg",
                 }).then((response) => {
                   if (!response.data) {
-                    throw new Error(`Upload anh ${index + 1} that bai.`);
+                    throw new Error(`Upload ảnh ${index + 1} thất bại.`);
                   }
 
                   return response.data;
@@ -90,10 +90,10 @@ export default function ProfileLocationUpdateScreen() {
       );
 
       await refreshProfile();
-      Alert.alert("Thanh cong", "Da gui yeu cau cap nhat dia diem. Thay doi se duoc ap dung sau khi admin duyet.");
+      Alert.alert("Thành công", "Đã gửi yêu cầu cập nhật địa điểm. Thay đổi sẽ được áp dụng sau khi admin duyệt.");
       router.back();
     } catch (error) {
-      Alert.alert("Cap nhat that bai", error instanceof Error ? error.message : "Co loi xay ra");
+      Alert.alert("Cập nhật thất bại", error instanceof Error ? error.message : "Có lỗi xảy ra");
     } finally {
       setIsSubmitting(false);
     }
@@ -101,14 +101,14 @@ export default function ProfileLocationUpdateScreen() {
 
   return (
     <ProfileLocationForm
-      title="Cap nhat dia diem"
-      subtitle={params.statusName ? `Trang thai hien tai: ${params.statusName}` : "UI da duoc refactor de dung chung voi man dang ky dia diem"}
-      submitLabel="Luu thay doi"
+      title="Cập nhật địa điểm"
+      subtitle={params.statusName ? `Trạng thái hiện tại: ${params.statusName}` : "UI đã được refactor để dùng chung với màn đăng ký địa điểm"}
+      submitLabel="Lưu thay đổi"
       isSubmitting={isSubmitting}
       initialValues={{
-        locationName: params.locationName ?? "Dia diem mau",
-        description: params.id ? `Dang chuan bi cap nhat cho dia diem ${params.id}` : "Cap nhat thong tin dia diem da co",
-        address: params.address ?? "12 Nguyen Huu, Quan 1, TP.HCM",
+        locationName: params.locationName ?? "Địa điểm mẫu",
+        description: params.id ? `Đang chuẩn bị cập nhật cho địa điểm ${params.id}` : "Cập nhật thông tin địa điểm đã có",
+        address: params.address ?? "12 Nguyen Huu, Quận 1, TP.HCM",
         addressLink: params.addressLink ?? "",
         mediaUris: initialMediaUris,
         openingHours: "08:00:00",
@@ -119,3 +119,4 @@ export default function ProfileLocationUpdateScreen() {
     />
   );
 }
+

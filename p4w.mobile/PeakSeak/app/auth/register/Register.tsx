@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+﻿import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Image, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const noSpecialCharacterRule = {
   id: "NO_SPECIAL_CHARACTER",
   validate: (value: string) => /^[\p{L}\p{N}\s]*$/u.test(value),
-  message: "Khong duoc nhap ky tu dac biet.",
+  message: "Không được nhập ký tự đặc biệt.",
 };
 
 export const Register = () => {
@@ -33,10 +33,10 @@ export const Register = () => {
         dateOfBirth: date.toISOString(),
         mediaLinkUrl: avatarUri ?? undefined,
       });
-      Alert.alert("Thanh cong", "Tao tai khoan thanh cong, vui long dang nhap.");
+      Alert.alert("Thành công", "Tạo tài khoản thành công, vui lòng đăng nhập.");
       router.replace("/auth/login/Login");
     } catch (error) {
-      Alert.alert("Dang ky that bai", error instanceof Error ? error.message : "Co loi xay ra");
+      Alert.alert("Đăng ký thất bại", error instanceof Error ? error.message : "Có lỗi xảy ra");
     }
   };
 
@@ -76,14 +76,14 @@ export const Register = () => {
               style={({ pressed }) => [styles.removeBtn, pressed && !loading && { opacity: 0.85 }]}
             >
               <Ionicons name="trash-outline" size={16} color="#EF4444" />
-              <Text style={styles.removeText}>Xoa anh</Text>
+              <Text style={styles.removeText}>Xóa ảnh</Text>
             </Pressable>
           )}
         </View>
         <View style={styles.card}>
           <AuthInput
-            label="Ho va ten"
-            placeholder="Nhap ten cua ban"
+            label="Họ và tên"
+            placeholder="Nhập tên của bạn"
             value={fullName}
             onChangeText={setFullName}
             rules={[noSpecialCharacterRule]}
@@ -97,14 +97,14 @@ export const Register = () => {
             required
           />
           <DatePickerUI
-            label="Ngay sinh"
+            label="Ngày sinh"
             value={date}
             onConfirm={(newDate) => setDate(newDate)}
             maximumDate={new Date()}
           />
-          <PrimaryButton label={isLoading ? "Dang xu ly..." : "Dang ky"} onPress={handleRegister} />
+          <PrimaryButton label={isLoading ? "Đang xử lý..." : "Đăng ký"} onPress={handleRegister} />
           <PrimaryButton
-            label="Da co tai khoan? Dang nhap"
+            label="Đã có tài khoản? Đăng nhập"
             variant="ghost"
             style={styles.ghostButton}
             onPress={() => router.push("/auth/login/Login")}
@@ -208,3 +208,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
+

@@ -1,5 +1,4 @@
 import { Avatar, Col, Modal, Row, Tag } from "antd";
-import dayjs from "dayjs";
 
 import type { IUserResponse } from "../../services/type";
 import {
@@ -21,6 +20,7 @@ import {
   SectionTitle,
   modalBodyStyles,
 } from "@/apps/admin/components/styled";
+import { formatDate } from "@/shared/utils/formatDate";
 
 type UserFormModalMode = "view";
 
@@ -39,15 +39,6 @@ const renderValue = (value?: string | number | null) => {
   }
 
   return String(value);
-};
-
-const formatDate = (value?: string) => {
-  if (!value) {
-    return "Chua cap nhat";
-  }
-
-  const parsed = dayjs(value);
-  return parsed.isValid() ? parsed.format("DD/MM/YYYY") : value;
 };
 
 const formatStatus = (value?: string) => {
@@ -126,7 +117,7 @@ export function UserFormModal({ open, mode, data, loading, onCancel, onSubmit }:
                   <InfoField label="Vai tro" value={data?.roleName} />
                 </Col>
                 <Col xs={24} md={12}>
-                  <InfoField label="Ngay sinh" value={formatDate(data?.dateOfBirth)} />
+                  <InfoField label="Ngay sinh" value={data?.dateOfBirth ? formatDate(data.dateOfBirth) : "Chua cap nhat"} />
                   <FieldWrap>
                     <FieldLabel>Trang thai</FieldLabel>
                     <FieldValue>

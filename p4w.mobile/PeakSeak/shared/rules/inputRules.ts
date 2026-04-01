@@ -4,7 +4,7 @@ export const INPUT_RULES = {
 } as const;
 
 export const INPUT_RULE_MESSAGES = {
-  NO_TRIPLE_WHITESPACE: 'Khong duoc nhap 3 khoang trang lien tiep.',
+  NO_TRIPLE_WHITESPACE: 'Không được nhập 3 khoảng trắng liên tiếp.',
   ONLY_KEYBOARD_CHARS: 'Kí tự không hợp lệ',
 } as const;
 

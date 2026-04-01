@@ -3,6 +3,7 @@ import { useLogin } from '@apps/auth/services';
 import type { TLoginRequest } from '@apps/auth/services';
 import tokenManager from '@utils/tokenManager';
 import { handleRedirect } from "@shared/utils";
+import { resolveServerMessage } from '@shared/utils/serverMessage';
 
 export const useHandleLogin = () => {
   const { mutate: login, isLoading } = useLogin();
@@ -24,7 +25,7 @@ export const useHandleLogin = () => {
     login(values, {
       onSuccess: (response) => {
         if(!response.success || response.data == null) {
-          handleShowError(response.message);
+          handleShowError(resolveServerMessage(response.message));
           return
         }
         handleSaveToken(response?.data?.accessToken, response?.data?.refreshToken);

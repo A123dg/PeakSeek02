@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Image, Pressable, RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View, ActivityIndicator } from "react-native";
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Image, Pressable, RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View, ActivityIndicator, Linking } from "react-native";
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Palette } from "@/components/app/palette";
@@ -9,7 +9,7 @@ import {
   LocationReviewBottomSheet,
   type LocationReviewBottomSheetRef,
 } from "@/components/app/LocationReviewBottomSheet";
-import { createReportApi, createReviewApi, getLocationDetailApi, type LocationDetail } from "@/services/api";
+import { createReportApi, createReviewApi, getLocationDetailApi, type LocationDetail, uploadImageApi } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
@@ -19,36 +19,42 @@ const getTypeLabel = (type: number) => {
     case 1:
       return "Coworking";
     case 2:
-      return "Thu vien";
+      return "Thư viện";
     case 3:
-      return "Ca phe";
+      return "Cà phê";
     default:
-      return "Dia diem";
+      return "Địa điểm";
   }
 };
 
 const formatTimeAgo = (value: string) => {
   const date = new Date(value).getTime();
   const diffHours = Math.max(1, Math.floor((Date.now() - date) / (1000 * 60 * 60)));
-  if (diffHours < 24) return `${diffHours} gio truoc`;
+  if (diffHours < 24) return `${diffHours} giờ trước`;
   const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays} ngay truoc`;
+  return `${diffDays} ngày trước`;
 };
 
 export const LocationInfo = () => {
   const { width } = useWindowDimensions();
   const router = useRouter();
   const { locationId } = useLocalSearchParams<{ locationId?: string }>();
-  const { reportModalRef, openReportSheet, closeReportSheet } = useReport();
+  const { reportModalRef, closeReportSheet } = useReport();
   const { isAuthenticated, authorizedRequest } = useAuth();
   const [location, setLocation] = useState<LocationDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ targetType: "location" | "review"; targetId: string } | null>(null);
 
   const reviewModalRef = useRef<LocationReviewBottomSheetRef>(null);
+  const handleViewAddress = () => {
+    if (location?.addressLink) {  
+      Linking.openURL(location.addressLink);
+    }
+  };
   const openReviewSheet = useCallback(() => {
     if (!isAuthenticated) {
-      Alert.alert("Can dang nhap", "Vui long dang nhap de viet danh gia.");
+      Alert.alert("Cần đăng nhập", "Vui lòng đăng nhập để viết đánh giá.");
       router.push("/auth/login/Login");
       return;
     }
@@ -57,6 +63,19 @@ export const LocationInfo = () => {
   const closeReviewSheet = useCallback(() => {
     reviewModalRef.current?.dismiss();
   }, []);
+  const openReportForTarget = useCallback(
+    (targetType: "location" | "review", targetId: string) => {
+      if (!isAuthenticated) {
+        Alert.alert("Cần đăng nhập", "Vui lòng đăng nhập để báo cáo vi phạm.");
+        router.push("/auth/login/Login");
+        return;
+      }
+
+      setReportTarget({ targetType, targetId });
+      reportModalRef.current?.present();
+    },
+    [isAuthenticated, reportModalRef, router]
+  );
 
   const loadLocation = useCallback(async () => {
     if (!locationId) {
@@ -103,7 +122,7 @@ export const LocationInfo = () => {
   if (!location) {
     return (
       <SafeAreaView style={styles.loaderWrap}>
-        <Text>Khong tim thay dia diem.</Text>
+        <Text>Không tìm thấy địa điểm.</Text>
       </SafeAreaView>
     );
   }
@@ -127,22 +146,6 @@ export const LocationInfo = () => {
                 <Ionicons name="chevron-back" size={20} color="#ffffff" />
               </Pressable>
               <View style={styles.rightActions}>
-                <View style={styles.iconButton}>
-                  <Ionicons name="heart-outline" size={18} color="#ffffff" />
-                </View>
-                <Pressable
-                  style={styles.iconButton}
-                  onPress={() => {
-                    if (!isAuthenticated) {
-                      Alert.alert("Can dang nhap", "Vui long dang nhap de gui bao cao.");
-                      router.push("/auth/login/Login");
-                      return;
-                    }
-                    openReportSheet();
-                  }}
-                >
-                  <MaterialCommunityIcons name="flag-variant-outline" size={22} color="#f5e7e7" />
-                </Pressable>
               </View>
             </View>
           </View>
@@ -156,18 +159,21 @@ export const LocationInfo = () => {
             </View>
           </View>
           <Text style={[styles.category, { fontSize: textSize - 1 }]}>{getTypeLabel(location.type)}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Text style={[styles.meta, { fontSize: textSize - 1 }]}>{location.address}</Text>
+          <Pressable onPress={handleViewAddress}>
+            <MaterialCommunityIcons name="map-marker-radius" size={18} color={Palette.primary} />
+          </Pressable>
+          </View>
           <Text style={[styles.desc, { fontSize: textSize, lineHeight: textSize * 1.45 }]}>
-            {location.description || "Dia diem dang duoc cap nhat mo ta."}
+            {location.description || "Địa điểm đang được cập nhật mô tả."}
           </Text>
 
           <View style={styles.ratingCard}>
             <Text style={styles.ratingValue}>{location.averageRating.toFixed(1)}</Text>
             <View style={styles.ratingRight}>
               <View style={styles.starRow}>
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <MaterialIcons key={idx} name="star" size={16} color="#f5a146" />
-                ))}
+                  <MaterialIcons  name="star" size={16} color="#f5a146" />
               </View>
               <Text style={styles.ratingMeta}>{location.reviewCount} danh gia</Text>
             </View>
@@ -212,6 +218,16 @@ export const LocationInfo = () => {
                   </View>
                   <Text style={styles.reviewText}>{review.content}</Text>
                 </View>
+                <Pressable
+                  style={styles.reviewActionButton}
+                  hitSlop={10}
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    openReportForTarget("review", review.id);
+                  }}
+                >
+                  <Ionicons name="flag-outline" size={18} color={Palette.subtext} />
+                </Pressable>
               </Pressable>
             ))}
           </View>
@@ -228,16 +244,17 @@ export const LocationInfo = () => {
               createReportApi(
                 {
                   reason: payload.note ? `${payload.reason}: ${payload.note}` : payload.reason,
-                  targetType: "Location",
-                  targetId: location.id,
+                  targetType: reportTarget?.targetType ?? "location",
+                  targetId: reportTarget?.targetId ?? location.id,
                 },
                 token
               )
             );
+            setReportTarget(null);
             closeReportSheet();
-            Alert.alert("Thanh cong", "Bao cao da duoc gui.");
+            Alert.alert("Thành công", "Cảm ơn bạn, báo cáo đã được gửi.");
           } catch (error) {
-            Alert.alert("That bai", error instanceof Error ? error.message : "Khong gui duoc bao cao.");
+            Alert.alert("Thất bại", error instanceof Error ? error.message : "Không gửi được báo cáo.");
           }
         }}
       />
@@ -248,12 +265,26 @@ export const LocationInfo = () => {
         onCancelPress={closeReviewSheet}
         onSubmitPress={async (payload) => {
           try {
+            const mediaLinkUrls =
+              payload.images && payload.images.length > 0
+                ? await Promise.all(
+                    payload.images.slice(0, 3).map((uri, index) =>
+                      uploadImageApi({
+                        uri,
+                        name: `review-${index + 1}.jpg`,
+                        type: "image/jpeg",
+                      }).then((response) => response.data)
+                    )
+                  )
+                : undefined;
+
             await authorizedRequest((token) =>
               createReviewApi(
                 {
                   locationId: location.id,
                   rating: payload.rating,
                   content: payload.content,
+                  mediaLinkUrls,
                 },
                 token
               )
@@ -261,7 +292,7 @@ export const LocationInfo = () => {
 
             await loadLocation();
           } catch (error) {
-            Alert.alert("That bai", error instanceof Error ? error.message : "Khong gui duoc danh gia.");
+            Alert.alert("Thất bại", error instanceof Error ? error.message : "Không gửi được đánh giá.");
             throw error;
           }
         }}
@@ -429,6 +460,7 @@ const styles = StyleSheet.create({
     padding: 12,
     flexDirection: "row",
     gap: 10,
+    alignItems: "flex-start",
   },
   avatar: {
     width: 32,
@@ -447,6 +479,17 @@ const styles = StyleSheet.create({
   reviewBody: {
     flex: 1,
     gap: 3,
+  },
+  reviewActionButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    marginTop: 2,
   },
   name: {
     fontSize: 13,
@@ -472,3 +515,4 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
 });
+

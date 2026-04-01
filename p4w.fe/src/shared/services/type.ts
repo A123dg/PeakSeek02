@@ -61,6 +61,7 @@ export interface IUserProfileResponse {
     id: string;
     locationName?: string;
     address?: string;
+    mediaLinkUrls?: string[];
   } | null;
   ownedLocations?: Array<{
     id: string;
