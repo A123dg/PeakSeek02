@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { message } from "antd";
 
 import type { ReportFormData } from "../../ReportFormModal";
@@ -50,10 +50,10 @@ export const useReportActions = () => {
 
       message.success(
         modalMode === "approve"
-          ? "Duyet bao cao thanh cong"
+          ? "Duyệt báo cáo thanh cong"
           : modalMode === "reject"
-            ? "Tu choi bao cao thanh cong"
-            : "Cap nhat bao cao thanh cong"
+            ? "Từ chối báo cáo thành công"
+            : "Cập nhật báo cáo thành công"
       );
       handleModalCancel();
     } catch {
@@ -73,3 +73,4 @@ export const useReportActions = () => {
     handleModalSubmit,
   };
 };
+

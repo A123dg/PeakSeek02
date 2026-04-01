@@ -26,7 +26,7 @@ export const useReportData = (filter?: { page?: number; pageSize?: number }) => 
   const mappedData: ReportRow[] =
     apiRes?.data?.map((item: any) => ({
       id: item.id,
-      reportedBy: item.reportedBy,
+      reportedBy: item.reportedBy || "Người dùng đã khóa",
       reportedItemType: item.reportedItemType,
       reportedItem: item.reportedItem,
       reportedItemId: item.reportedItemId,
@@ -44,3 +44,4 @@ export const useReportData = (filter?: { page?: number; pageSize?: number }) => 
     pageSize: apiRes?.metaData?.pageSize ?? filter?.pageSize ?? 10,
   };
 };
+

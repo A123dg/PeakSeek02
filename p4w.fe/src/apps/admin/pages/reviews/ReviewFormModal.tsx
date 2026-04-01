@@ -1,4 +1,4 @@
-import { Button, Image, Rate, Tag } from "antd";
+﻿import { Button, Image, Rate, Tag } from "antd";
 import styled from "styled-components";
 
 import BaseModal from "@shared/components/modals";
@@ -105,13 +105,13 @@ const EmptyMedia = styled.div`
 const DetailField = ({ label, value }: { label: string; value?: string | number | null }) => (
   <FieldWrap>
     <FieldLabel>{label}</FieldLabel>
-    <FieldValue>{value || "Chua cap nhat"}</FieldValue>
+    <FieldValue>{value || "Chưa cập nhật"}</FieldValue>
   </FieldWrap>
 );
 
 const renderMedia = (mediaLinkUrls?: string[]) => {
   if (!mediaLinkUrls?.length) {
-    return <EmptyMedia>Khong co media</EmptyMedia>;
+    return <EmptyMedia>Không có media</EmptyMedia>;
   }
 
   return (
@@ -146,7 +146,7 @@ export function ReviewFormModal({
       hideModal={onCancel}
       onCancel={onCancel}
       onOk={onCancel}
-      okText="Dong"
+      okText="Đóng"
       cancelText={undefined}
       loading={loading}
       width={980}
@@ -159,21 +159,21 @@ export function ReviewFormModal({
             <HeaderMain>
               <div>
                 <HeaderTitle>{data?.location || "Chi tiet danh gia"}</HeaderTitle>
-                <HeaderSubtitle>{data?.user || "Nguoi dung chua xac dinh"}</HeaderSubtitle>
+                <HeaderSubtitle>{data?.user || "Người dùng chưa xác định"}</HeaderSubtitle>
                 <HeaderHint>ID: {data?.id || "--"}</HeaderHint>
               </div>
             </HeaderMain>
 
-            <StatusBadge $active={isActive}>{isActive ? "Dang hien thi" : "Da an"}</StatusBadge>
+            <StatusBadge $active={isActive}>{isActive ? "Đang hiển thị" : "Đã ẩn"}</StatusBadge>
           </HeaderRow>
         </ModalHeader>
 
         <ModalContent>
           <SectionStack>
             <SectionCard>
-              <SectionTitle>Thong tin danh gia</SectionTitle>
+              <SectionTitle>Thông tin danh gia</SectionTitle>
               <DetailGrid>
-                <DetailField label="Nguoi dung" value={data?.user} />
+                <DetailField label="Người dùng" value={data?.user} />
                 <DetailField label="Dia diem" value={data?.location} />
                 <FieldWrap>
                   <FieldLabel>So sao</FieldLabel>
@@ -181,12 +181,12 @@ export function ReviewFormModal({
                     <Rate disabled value={data?.rating ?? 0} />
                   </FieldValue>
                 </FieldWrap>
-                <DetailField label="Thoi gian tao" value={data?.createdAt ? formatDate(data.createdAt) : undefined} />
+                <DetailField label="Thời gian tạo" value={data?.createdAt ? formatDate(data.createdAt) : undefined} />
               </DetailGrid>
 
               <FieldWrap>
-                <FieldLabel>Noi dung</FieldLabel>
-                <FieldValue>{data?.content || "Chua co noi dung"}</FieldValue>
+                <FieldLabel>Nội dung</FieldLabel>
+                <FieldValue>{data?.content || "Chưa có nội dung"}</FieldValue>
               </FieldWrap>
             </SectionCard>
 
@@ -198,7 +198,7 @@ export function ReviewFormModal({
         </ModalContent>
 
         <FooterActions>
-          <Button onClick={onCancel}>Dong</Button>
+          <Button onClick={onCancel}>Đóng</Button>
         </FooterActions>
       </ModalWrapper>
     </BaseModal>
@@ -206,3 +206,4 @@ export function ReviewFormModal({
 }
 
 export default ReviewFormModal;
+

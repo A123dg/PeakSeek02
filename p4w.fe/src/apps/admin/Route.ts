@@ -2,6 +2,7 @@ import { createRoute } from '@tanstack/react-router';
 import { rootRoute } from '@/Route';
 import AdminLayout from '@apps/admin/components/AdminLayout';
 import adminIndexRoute from '@apps/admin/pages/index/Route';
+import adminCommentListRoute from '@apps/admin/pages/comments/Route';
 import adminReviewListRoute from '@apps/admin/pages/reviews/Route';
 import adminLocationListRoute from '@apps/admin/pages/locations/Route';
 import adminUserListRoute from '@apps/admin/pages/users/Route';
@@ -17,6 +18,7 @@ export const adminRoute = createRoute({
 
 adminRoute.addChildren([
   adminIndexRoute,
+  adminCommentListRoute,
   adminReviewListRoute,
   adminLocationListRoute,
   adminUserListRoute,

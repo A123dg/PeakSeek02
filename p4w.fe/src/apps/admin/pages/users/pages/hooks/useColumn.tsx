@@ -1,4 +1,4 @@
-import { EyeOutlined, LockOutlined } from "@ant-design/icons";
+﻿import { EyeOutlined, LockOutlined } from "@ant-design/icons";
 import { Avatar, Button, Space, Tag, Tooltip } from "antd";
 import type { IUserResponse, UserStatus } from "../../services/type";
 
@@ -10,9 +10,9 @@ type TColumn = {
 };
 
 const statusMeta: Record<UserStatus, { label: string; color: string; bg: string }> = {
-  active: { label: "Hoat dong", color: "#16a34a", bg: "#ecfdf3" },
+  active: { label: "Hoạt động", color: "#16a34a", bg: "#ecfdf3" },
   locked: { label: "Khoa", color: "#dc2626", bg: "#fef2f2" },
-  inactive: { label: "Khong hoat dong", color: "#f59e0b", bg: "#fffbeb" },
+  inactive: { label: "Không hoạt động", color: "#f59e0b", bg: "#fffbeb" },
 };
 
 export const useColumns = ({ handleOpenViewModal, handleLockUser, pageIndex, pageSize }: TColumn) => {
@@ -25,7 +25,7 @@ export const useColumns = ({ handleOpenViewModal, handleLockUser, pageIndex, pag
       render: (_: any, __: any, index: number) => (pageIndex - 1) * pageSize + index + 1,
     },
     {
-      title: "Nguoi dung",
+      title: "Người dùng",
       dataIndex: "userName",
       key: "userName",
       width: 240,
@@ -86,7 +86,7 @@ export const useColumns = ({ handleOpenViewModal, handleLockUser, pageIndex, pag
               onClick={() => handleOpenViewModal(record)}
             />
           </Tooltip>
-          <Tooltip title={record.statusName === "locked" ? "Mo khoa tai khoan" : "Khoa tai khoan"} color="var(--primary)">
+          <Tooltip title={record.statusName === "locked" ? "Mở khóa tài khoản" : "Khóa tài khoản"} color="var(--primary)">
             <Button
               size="small"
               type="text"
@@ -103,3 +103,4 @@ export const useColumns = ({ handleOpenViewModal, handleLockUser, pageIndex, pag
 
   return { columns };
 };
+

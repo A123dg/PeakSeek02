@@ -1,4 +1,4 @@
-import { Button, Image, Tag } from "antd";
+﻿import { Button, Image, Tag } from "antd";
 import styled from "styled-components";
 
 import BaseModal from "@shared/components/modals";
@@ -126,16 +126,16 @@ const typeMap: Record<number, string> = {
 };
 
 const statusMap: Record<number, { label: string; tone: "pending" | "approved" | "rejected" | "active" | "inactive" }> = {
-  0: { label: "Da an", tone: "inactive" },
-  1: { label: "Cho duyet", tone: "pending" },
-  2: { label: "Da duyet", tone: "approved" },
-  3: { label: "Tu choi", tone: "rejected" },
-  4: { label: "Dang hien thi", tone: "active" },
+  0: { label: "Đã ẩn", tone: "inactive" },
+  1: { label: "Chờ duyệt", tone: "pending" },
+  2: { label: "Đã duyệt", tone: "approved" },
+  3: { label: "Từ chối", tone: "rejected" },
+  4: { label: "Đang hiển thị", tone: "active" },
 };
 
 const renderMedia = (mediaLinkUrls?: string[]) => {
   if (!mediaLinkUrls?.length) {
-    return <EmptyMedia>Khong co media</EmptyMedia>;
+    return <EmptyMedia>Không có media</EmptyMedia>;
   }
 
   return (
@@ -158,7 +158,7 @@ const renderMedia = (mediaLinkUrls?: string[]) => {
 const DetailField = ({ label, value }: { label: string; value?: string | number | null }) => (
   <FieldWrap>
     <FieldLabel>{label}</FieldLabel>
-    <FieldValue>{value || "Chua cap nhat"}</FieldValue>
+    <FieldValue>{value || "Chưa cập nhật"}</FieldValue>
   </FieldWrap>
 );
 
@@ -179,8 +179,8 @@ export function LocationFormModal({
       hideModal={onCancel}
       onCancel={onCancel}
       onOk={canApprove ? () => void onSubmit(data ?? {}) : onCancel}
-      okText={canApprove ? "Duyet dia diem" : "Dong"}
-      cancelText={canApprove ? "Dong" : undefined}
+      okText={canApprove ? "Duyệt địa điểm" : "Đóng"}
+      cancelText={canApprove ? "Đóng" : undefined}
       loading={loading}
       width={1040}
       footer={null}
@@ -192,7 +192,7 @@ export function LocationFormModal({
             <HeaderMain>
               <div>
                 <HeaderTitle>{data?.name || "Chi tiet dia diem"}</HeaderTitle>
-                <HeaderSubtitle>{data?.address || "Chua cap nhat dia chi"}</HeaderSubtitle>
+                <HeaderSubtitle>{data?.address || "Chưa cập nhật địa chỉ"}</HeaderSubtitle>
                 <HeaderHint>ID: {data?.id || "--"}</HeaderHint>
               </div>
             </HeaderMain>
@@ -204,14 +204,14 @@ export function LocationFormModal({
         <ModalContent>
           <SectionStack>
             <SectionCard>
-              <SectionTitle>Thong tin dia diem</SectionTitle>
+              <SectionTitle>Thông tin dia diem</SectionTitle>
               <DetailGrid>
                 <DetailField label="Loai hinh" value={data?.type ? typeMap[data.type] ?? `Loai ${data.type}` : null} />
                 <DetailField label="Chu so huu" value={data?.ownerId} />
                 <DetailField label="Gio mo cua" value={data?.openingHours} />
                 <DetailField label="Gio dong cua" value={data?.closingHours} />
-                <DetailField label="Dia chi" value={data?.address} />
-                <DetailField label="Link dia chi" value={data?.addressLink} />
+                <DetailField label="Địa chỉ" value={data?.address} />
+                <DetailField label="Link địa chỉ" value={data?.addressLink} />
               </DetailGrid>
 
               <FieldWrap>
@@ -221,13 +221,13 @@ export function LocationFormModal({
             </SectionCard>
 
             <SectionCard>
-              <SectionTitle>Media hien tai</SectionTitle>
+              <SectionTitle>Hình ảnh hiện tại</SectionTitle>
               {renderMedia(data?.mediaLinkUrls)}
             </SectionCard>
 
             {data?.pendingMediaLinkUrls?.length ? (
               <SectionCard>
-                <SectionTitle>Media cho duyet</SectionTitle>
+                <SectionTitle>Media chờ duyệt</SectionTitle>
                 {renderMedia(data.pendingMediaLinkUrls)}
               </SectionCard>
             ) : null}
@@ -235,10 +235,10 @@ export function LocationFormModal({
         </ModalContent>
 
         <FooterActions>
-          <Button onClick={onCancel}>Dong</Button>
+          <Button onClick={onCancel}>Đóng</Button>
           {canApprove ? (
             <Button type="primary" loading={loading} onClick={() => void onSubmit(data ?? {})}>
-              Duyet dia diem
+              Duyệt địa điểm
             </Button>
           ) : null}
         </FooterActions>
@@ -248,3 +248,4 @@ export function LocationFormModal({
 }
 
 export default LocationFormModal;
+

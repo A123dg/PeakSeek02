@@ -15,3 +15,14 @@ export const getUserInfo = () => {
 export const updateProfile = (payload: IUpdateProfileRequest): Promise<IResponse<IUserProfileResponse>> => {
   return axiosClient.put('/Auth/update-profile', payload);
 };
+
+export const uploadImage = (file: File): Promise<IResponse<string>> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return axiosClient.post("/UploadFile/image", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};

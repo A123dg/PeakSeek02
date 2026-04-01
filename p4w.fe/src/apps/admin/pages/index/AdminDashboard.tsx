@@ -179,13 +179,13 @@ export default function AdminDashboard() {
   };
 
   return (
-    <PageContainer breadcrumbItems={[{ title: "Tong quan he thong" }]} showBreadcrumb showNavButtons={false}>
+    <PageContainer breadcrumbItems={[{ title: "Tổng quan hệ thống" }]} showBreadcrumb showNavButtons={false}>
       <DashboardStack>
         <HeroGrid>
           <HeroCard>
             <div>
               <HeroEyebrow>Admin Dashboard</HeroEyebrow>
-              <HeroTitle>Toàn cảnh vận hành hệ thống P4WS</HeroTitle>
+              <HeroTitle>Thông tin hệ thống</HeroTitle>
               <HeroSubTitle>
                 Theo dõi nhanh quy mô người dùng, tiến độ duyệt địa điểm và trạng thái xử lý báo cáo từ
                 một màn hình tổng hợp.
@@ -216,11 +216,11 @@ export default function AdminDashboard() {
           <HeroCard>
             <div>
               <HeroEyebrow>Điểm nhấn</HeroEyebrow>
-              <HeroTitle style={{ fontSize: "2.4rem" }}>Nhịp xử lý hiện tại</HeroTitle>
-              <HeroSubTitle>
+              <HeroTitle style={{ fontSize: "2.4rem" }}>Thông tin xử lý hiện tại</HeroTitle>
+              {/* <HeroSubTitle>
                 Hai cụm số liệu bên dưới thể hiện rõ tỷ lệ duyệt và chờ duyệt để admin nắm ngay khối lượng
                 công việc cần xử lý.
-              </HeroSubTitle>
+              </HeroSubTitle> */}
             </div>
 
             <MetricStrip style={{ gridTemplateColumns: "1fr" }}>
@@ -256,3 +256,4 @@ export default function AdminDashboard() {
     </PageContainer>
   );
 }
+

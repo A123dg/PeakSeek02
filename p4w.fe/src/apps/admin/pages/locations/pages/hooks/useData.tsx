@@ -50,7 +50,7 @@ export const useLocationData = (filter?: { page?: number; pageSize?: number }) =
       status: item.statusName,
       statusCode: item.status,
       ownerId: item.ownerId,
-      ownerName: item.ownerName,
+      ownerName: item.ownerName || "Người dùng đã khóa",
       addressLink: item.addressLink ?? undefined,
       mediaLinkUrls: item.mediaLinkUrls ?? [],
       pendingMediaLinkUrls: item.pendingMediaLinkUrls ?? [],
@@ -64,3 +64,4 @@ export const useLocationData = (filter?: { page?: number; pageSize?: number }) =
     pageSize: apiRes?.metaData?.pageSize ?? filter?.pageSize ?? 10,
   };
 };
+

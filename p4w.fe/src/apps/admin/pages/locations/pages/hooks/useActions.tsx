@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { message } from "antd";
 
 import type { LocationFormData } from "../../LocationFormModal";
@@ -37,7 +37,7 @@ export const useLocationActions = () => {
         },
       });
 
-      message.success("Duyet dia diem thanh cong");
+      message.success("Duyệt địa điểm thanh cong");
       handleModalCancel();
     } catch {
       message.error("Co loi xay ra");
@@ -53,7 +53,7 @@ export const useLocationActions = () => {
         },
       });
 
-      message.success("Duyet dia diem thanh cong");
+      message.success("Duyệt địa điểm thanh cong");
     } catch {
       message.error("Co loi xay ra");
     }
@@ -70,3 +70,4 @@ export const useLocationActions = () => {
     handleApproveLocation,
   };
 };
+

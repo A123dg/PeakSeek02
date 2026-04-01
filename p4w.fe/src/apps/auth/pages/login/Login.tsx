@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Button, Form, Input } from 'antd';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
-import { Link } from '@tanstack/react-router';
 import useCheckLogin from '@/shared/hooks/useCheckLogin';
 import { handleRedirect } from '@shared/utils';
 import * as rules from '@constants/rules';
-import { FORGOT_PASSWORD_ROUTE } from '@constants/index';
 import useHandleLogin from '@apps/auth/hooks/useHandleLogin';
 import type { TLoginRequest } from '@apps/auth/services';
 
@@ -177,7 +175,7 @@ export default function Login() {
                 cursor: 'pointer',
               }}
             >
-              <Link to={FORGOT_PASSWORD_ROUTE as string}>Quên mật khẩu?</Link>
+              {/* <Link to={FORGOT_PASSWORD_ROUTE as string}>Quên mật khẩu?</Link> */}
             </button>
           </div>
         </Form>

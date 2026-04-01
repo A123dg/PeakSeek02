@@ -1,4 +1,4 @@
-import { Avatar, Col, Modal, Row, Tag } from "antd";
+﻿import { Avatar, Col, Modal, Row, Tag } from "antd";
 
 import type { IUserResponse } from "../../services/type";
 import {
@@ -35,7 +35,7 @@ interface UserFormModalProps {
 
 const renderValue = (value?: string | number | null) => {
   if (value === undefined || value === null || value === "") {
-    return "Chua cap nhat";
+    return "Chưa cập nhật";
   }
 
   return String(value);
@@ -44,11 +44,11 @@ const renderValue = (value?: string | number | null) => {
 const formatStatus = (value?: string) => {
   switch (value) {
     case "active":
-      return { label: "Hoat dong", color: "#16a34a", bg: "#ecfdf3" };
+      return { label: "Hoạt động", color: "#16a34a", bg: "#ecfdf3" };
     case "locked":
       return { label: "Khoa", color: "#dc2626", bg: "#fef2f2" };
     default:
-      return { label: "Khong hoat dong", color: "#f59e0b", bg: "#fffbeb" };
+      return { label: "Không hoạt động", color: "#f59e0b", bg: "#fffbeb" };
   }
 };
 
@@ -108,7 +108,7 @@ export function UserFormModal({ open, mode, data, loading, onCancel, onSubmit }:
         <ModalContent>
           <SectionStack>
             <SectionCard>
-              <SectionTitle>Thong tin nguoi dung</SectionTitle>
+              <SectionTitle>Thông tin người dùng</SectionTitle>
               <Row gutter={[48, 8]}>
                 <Col xs={24} md={12}>
                   <InfoField label="User name" value={data?.userName} />
@@ -117,7 +117,7 @@ export function UserFormModal({ open, mode, data, loading, onCancel, onSubmit }:
                   <InfoField label="Vai tro" value={data?.roleName} />
                 </Col>
                 <Col xs={24} md={12}>
-                  <InfoField label="Ngay sinh" value={data?.dateOfBirth ? formatDate(data.dateOfBirth) : "Chua cap nhat"} />
+                  <InfoField label="Ngày sinh" value={data?.dateOfBirth ? formatDate(data.dateOfBirth) : "Chưa cập nhật"} />
                   <FieldWrap>
                     <FieldLabel>Trang thai</FieldLabel>
                     <FieldValue>
@@ -176,3 +176,4 @@ export function UserFormModal({ open, mode, data, loading, onCancel, onSubmit }:
 }
 
 export default UserFormModal;
+

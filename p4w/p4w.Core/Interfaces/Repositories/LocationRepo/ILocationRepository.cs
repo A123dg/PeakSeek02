@@ -25,9 +25,12 @@ public interface ILocationRepository
     Task AddCommentAsync(Comment comment);
     Task<PagedResult<AdminLocationDto>> GetAdminLocationsAsync(string? search, int? type, int? status, int page, int pageSize);
     Task<PagedResult<AdminReviewDto>> GetAdminReviewsAsync(string? search, int? status, int? minRating, int page, int pageSize);
+    Task<PagedResult<AdminCommentDto>> GetAdminCommentsAsync(string? search, int? status, int page, int pageSize);
     Task<AdminLocationDto?> GetAdminLocationDetailAsync(Guid locationId);
     Task<AdminReviewDto?> GetAdminReviewDetailAsync(Guid reviewId);
+    Task<AdminCommentDto?> GetAdminCommentDetailAsync(Guid commentId);
     Task AddLocationAsync(p4w.Core.Models.Location location);
     Task AddLocationMediaAsync(Guid ownerId, Guid locationId, IEnumerable<string> mediaUrls);
     Task UpdateLocationAsync(p4w.Core.Models.Location location);
+    Task UpdateCommentAsync(Comment comment);
 }

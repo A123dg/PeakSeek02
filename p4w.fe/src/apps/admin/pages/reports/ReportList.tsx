@@ -38,7 +38,7 @@ export default function ReportList() {
   return (
     <div style={{ fontSize: 14 }}>
       <PageContainer
-        breadcrumbItems={[{ title: "Danh sach bao cao" }]}
+        breadcrumbItems={[{ title: "Danh sách báo cáo" }]}
         showNavButtons={false}
         showBreadcrumb={true}
       >
@@ -46,7 +46,7 @@ export default function ReportList() {
           <ListPageFilters>
             <Input
               prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-              placeholder="Tim theo nguoi bao cao / muc bao cao..."
+              placeholder="Tìm theo người báo cáo / mục báo cáo..."
               allowClear
               style={{ width: 300 }}
               onChange={(e) =>
@@ -58,11 +58,11 @@ export default function ReportList() {
               }
             />
             <Select
-              placeholder="Loai bao cao"
+              placeholder="Loại báo cáo"
               allowClear
               style={{ width: 160 }}
               options={[
-                { value: "user", label: "Nguoi dung" },
+                { value: "user", label: "Người dùng" },
                 { value: "location", label: "Dia diem" },
                 { value: "review", label: "Danh gia" },
                 { value: "comment", label: "Binh luan" },
@@ -80,9 +80,9 @@ export default function ReportList() {
               allowClear
               style={{ width: 160 }}
               options={[
-                { value: 1, label: "Cho duyet" },
-                { value: 2, label: "Da duyet" },
-                { value: 3, label: "Tu choi" },
+                { value: 1, label: "Chờ duyệt" },
+                { value: 2, label: "Đã duyệt" },
+                { value: 3, label: "Từ chối" },
               ]}
               onChange={(value) =>
                 setFilter((prev: typeof initialFilter) => ({
@@ -117,3 +117,4 @@ export default function ReportList() {
     </div>
   );
 }
+

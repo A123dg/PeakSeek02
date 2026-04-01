@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, Col, DatePicker, Form, Input, Modal, Row } from "antd";
 import dayjs from "dayjs";
 
@@ -6,9 +6,11 @@ import { INVALID_CONFIRM_PASSWORD, INVALID_PASSWORD } from "@/constants/rules/me
 import { PASSWORD_PATTERN } from "@/constants/rules/pattern";
 import useNotification from "@/shared/hooks/useNotification";
 import { useUpdateProfile } from "@/shared/services/mutation";
+import { uploadImage } from "@/shared/services/api";
 import { formatDate } from "@/shared/utils/formatDate";
 import { resolveServerMessage } from "@/shared/utils/serverMessage";
 import {
+  AvatarButton,
   AvatarShell,
   FieldLabel,
   FieldValue,
@@ -16,6 +18,7 @@ import {
   FormActions,
   FormSection,
   HeaderAction,
+  HeaderActions,
   HeaderHint,
   HeaderMain,
   HeaderRow,
@@ -58,7 +61,7 @@ interface AdminProfileModalProps {
 
 const renderValue = (value?: string | number | null) => {
   if (value === undefined || value === null || value === "") {
-    return "Chua cap nhat";
+    return "Chưa cập nhật";
   }
 
   return String(value);
@@ -67,13 +70,13 @@ const renderValue = (value?: string | number | null) => {
 const formatStatus = (value?: number) => {
   switch (value) {
     case 1:
-      return { label: "Dang hoat dong" };
+      return { label: "Đang hoạt động" };
     case 0:
-      return { label: "Khong hoat dong" };
+      return { label: "Không hoạt động" };
     case 3:
       return { label: "Da khoa" };
     default:
-      return { label: "Chua cap nhat" };
+      return { label: "Chưa cập nhật" };
   }
 };
 
@@ -87,7 +90,7 @@ const InfoField = ({ label, value }: { label: string; value?: string | number | 
 const InfoFieldDate = ({ label, value }: { label: string; value?: string }) => (
   <FieldWrap>
     <FieldLabel>{label}</FieldLabel>
-    <FieldValue>{value ? formatDate(value) : "Chua cap nhat"}</FieldValue>
+    <FieldValue>{value ? formatDate(value) : "Chưa cập nhật"}</FieldValue>
   </FieldWrap>
 );
 
@@ -95,14 +98,16 @@ const PasswordField = ({ label, value }: { label: string; value?: string }) => (
   <FieldWrap>
     <FieldLabel>{label}</FieldLabel>
     <PasswordValue>
-      <PasswordMask>{value || "Chua cap nhat"}</PasswordMask>
+      <PasswordMask>{value || "Chưa cập nhật"}</PasswordMask>
     </PasswordValue>
   </FieldWrap>
 );
 
 export default function AdminProfileModal({ open, onClose, user }: AdminProfileModalProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [form] = Form.useForm();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { mutateAsync: updateProfileMutation, isLoading } = useUpdateProfile();
   const { showErrorNotify, showSuccessNotify } = useNotification();
   const displayName = user?.userName || user?.username || "Admin";
@@ -115,7 +120,7 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
     .join("")
     .toUpperCase();
   const statusMeta = formatStatus(user?.status);
-  const maskedPassword = useMemo(() => (user?.password ? "••••••••••••" : "Chua cap nhat"), [user?.password]);
+  const maskedPassword = useMemo(() => (user?.password ? "••••••••••••" : "Chua c?p nh?t"), [user?.password]);
 
   useEffect(() => {
     if (open) {
@@ -133,6 +138,20 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
     form.resetFields();
   }, [open, user, form]);
 
+  const buildProfilePayload = (overrides?: { mediaLinkUrl?: string; password?: string }) => {
+    const currentValues = form.getFieldsValue();
+
+    return {
+      userName: (currentValues.userName || user?.userName || user?.username || "").trim(),
+      email: (currentValues.email || user?.email || "").trim(),
+      dateOfBirth: currentValues.dateOfBirth
+        ? currentValues.dateOfBirth.format("YYYY-MM-DD")
+        : user?.dateOfBirth || undefined,
+      password: overrides?.password,
+      mediaLinkUrl: overrides?.mediaLinkUrl,
+    };
+  };
+
   const handleToggleEdit = async () => {
     if (!isEditing) {
       setIsEditing(true);
@@ -149,7 +168,7 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
         password: values.password || undefined,
       });
 
-      showSuccessNotify("Cap nhat thong tin thanh cong");
+      showSuccessNotify("Cập nhật thông tin thành công");
       setIsEditing(false);
       form.setFieldsValue({
         password: undefined,
@@ -161,6 +180,36 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
       }
 
       showErrorNotify(resolveServerMessage(error?.data?.message || error?.message) || "Co loi xay ra");
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      setIsUploadingAvatar(true);
+      const uploadResponse = await uploadImage(file);
+
+      await updateProfileMutation(
+        buildProfilePayload({
+          mediaLinkUrl: uploadResponse.data,
+        })
+      );
+
+      showSuccessNotify("Cập nhật avatar thanh cong");
+    } catch (error: any) {
+      showErrorNotify(resolveServerMessage(error?.data?.message || error?.message) || "Co loi xay ra");
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
 
@@ -182,37 +231,47 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
           <HeaderRow>
             <HeaderMain>
               <AvatarShell>
-                <Avatar
-                  size={110}
-                  src={avatarSrc}
-                  style={{
-                    background: "#f4f1ff",
-                    color: "var(--primary, #8c80cc)",
-                    border: "4px solid rgba(255,255,255,0.92)",
-                    boxShadow: "0 12px 26px rgba(15, 23, 42, 0.18)",
-                  }}
-                >
-                  {!avatarSrc ? avatarFallback : null}
-                </Avatar>
+                <AvatarButton type="button" onClick={handleAvatarClick} title="Cập nhật avatar">
+                  <Avatar
+                    size={110}
+                    src={avatarSrc}
+                    style={{
+                      background: "#f4f1ff",
+                      color: "var(--primary, #8c80cc)",
+                      boxShadow: "none",
+                    }}
+                  >
+                    {!avatarSrc ? avatarFallback : null}
+                  </Avatar>
+                </AvatarButton>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleAvatarChange}
+                />
               </AvatarShell>
 
               <HeaderText>
                 <HeaderTitle>{displayName}</HeaderTitle>
                 <HeaderSubtitle>{renderValue(user?.email)}</HeaderSubtitle>
-                <HeaderHint>ID: {renderValue(user?.id)}</HeaderHint>
+                <HeaderHint>ID: {renderValue(user?.id)} | Click vao anh de doi avatar</HeaderHint>
               </HeaderText>
             </HeaderMain>
 
-            <HeaderAction type="primary" onClick={handleToggleEdit} loading={isLoading}>
-              {isEditing ? "Luu" : "Cap nhat"}
-            </HeaderAction>
+            <HeaderActions>
+              <HeaderAction type="primary" onClick={handleToggleEdit} loading={isLoading || isUploadingAvatar}>
+                {isEditing ? "Lưu" : "Cập nhật"}
+              </HeaderAction>
+            </HeaderActions>
           </HeaderRow>
         </ModalHeader>
 
         <ModalContent>
           <SectionStack>
             <SectionCard>
-              <SectionTitle>Thong tin ca nhan</SectionTitle>
+              <SectionTitle>Thông tin cá nhân</SectionTitle>
 
               {isEditing ? (
                 <StyledForm form={form} layout="vertical">
@@ -232,13 +291,13 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
                           name="email"
                           rules={[
                             { required: true, message: "Vui long nhap email" },
-                            { type: "email", message: "Email khong hop le" },
+                            { type: "email", message: "Email không hợp lệ" },
                           ]}
                         >
                           <Input placeholder="Nhap email" />
                         </Form.Item>
 
-                        <Form.Item label="Ngay sinh" name="dateOfBirth">
+                        <Form.Item label="Ngày sinh" name="dateOfBirth">
                           <DatePicker format="DD/MM/YYYY" style={{ width: "100%" }} />
                         </Form.Item>
                       </FormSection>
@@ -247,7 +306,7 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
                     <Col xs={24} md={12}>
                       <FormSection>
                         <Form.Item
-                          label="Mat khau moi"
+                          label="Mật khẩu mới"
                           name="password"
                           rules={[
                             {
@@ -261,11 +320,11 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
                             },
                           ]}
                         >
-                          <Input.Password placeholder="De trong neu khong doi mat khau" />
+                          <Input.Password placeholder="Để trống nếu không đổi mật khẩu" />
                         </Form.Item>
 
                         <Form.Item
-                          label="Xac nhan mat khau moi"
+                          label="Xác nhận mật khẩu mới"
                           name="confirmPassword"
                           dependencies={["password"]}
                           rules={[
@@ -286,18 +345,15 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
                             }),
                           ]}
                         >
-                          <Input.Password placeholder="Nhap lai mat khau moi" />
+                          <Input.Password placeholder="Nhập lại mật khẩu mới" />
                         </Form.Item>
-
-                        <InfoField label="Google user id" value={user?.googleUserId} />
-                        <InfoField label="Role id" value={user?.roleId} />
                         <InfoField label="Trang thai" value={statusMeta.label} />
                       </FormSection>
                     </Col>
                   </Row>
 
                   <FormActions>
-                    <HeaderAction onClick={handleCancelEdit}>Huy</HeaderAction>
+                    <HeaderAction onClick={handleCancelEdit}>Hủy</HeaderAction>
                   </FormActions>
                 </StyledForm>
               ) : (
@@ -305,12 +361,10 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
                   <Col xs={24} md={12}>
                     <InfoField label="User name" value={user?.userName || user?.username} />
                     <InfoField label="Email" value={user?.email} />
-                    <InfoFieldDate label="Ngay sinh" value={user?.dateOfBirth} />
+                    <InfoFieldDate label="Ngày sinh" value={user?.dateOfBirth} />
                   </Col>
                   <Col xs={24} md={12}>
-                    <PasswordField label="Mat khau" value={maskedPassword} />
-                    <InfoField label="Google user id" value={user?.googleUserId} />
-                    <InfoField label="Role id" value={user?.roleId} />
+                    <PasswordField label="Mật khẩu" value={maskedPassword} />
                     <InfoField label="Trang thai" value={statusMeta.label} />
                   </Col>
                 </Row>
@@ -322,3 +376,4 @@ export default function AdminProfileModal({ open, onClose, user }: AdminProfileM
     </Modal>
   );
 }
+

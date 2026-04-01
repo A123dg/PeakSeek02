@@ -70,50 +70,50 @@ export function ReportFormModal({
   const getModalTitle = () => {
     switch (mode) {
       case "view":
-        return "Chi tiet bao cao";
+        return "Chi tiết báo cáo";
       case "approve":
-        return "Duyet bao cao";
+        return "Duyệt báo cáo";
       case "reject":
-        return "Tu choi bao cao";
+        return "Từ chối báo cáo";
       default:
-        return "Bao cao";
+        return "Báo cáo";
     }
   };
 
   const getOkButtonText = () => {
     switch (mode) {
       case "view":
-        return "Dong";
+        return "Đóng";
       case "approve":
-        return "Duyet";
+        return "Duyệt";
       case "reject":
-        return "Tu choi";
+        return "Từ chối";
       default:
-        return "Luu";
+        return "Lưu";
     }
   };
 
   const formItems = [
     {
-      label: "Nguoi bao cao",
+      label: "Người báo cáo",
       name: "reportedBy",
       component: <Input disabled />,
       span: 12,
     },
     {
-      label: "Loai bao cao",
+      label: "Loại báo cáo",
       name: "reportedItemType",
       component: <Input disabled />,
       span: 12,
     },
     {
-      label: "Muc bao cao",
+      label: "Mục báo cáo",
       name: "reportedItem",
       component: <Input disabled />,
       span: 12,
     },
     {
-      label: "Ngay tao",
+      label: "Ngày tạo",
       name: "createdAt",
       component: <Input disabled />,
       span: 12,
@@ -125,9 +125,9 @@ export function ReportFormModal({
         <Select
           disabled={isViewMode}
           options={[
-            { value: "pending", label: "Cho duyet" },
-            { value: "approved", label: "Da duyet" },
-            { value: "rejected", label: "Tu choi" },
+            { value: "pending", label: "Chờ duyệt" },
+            { value: "approved", label: "Đã duyệt" },
+            { value: "rejected", label: "Từ chối" },
           ]}
         />
       ),
@@ -164,10 +164,11 @@ export function ReportFormModal({
       form={form}
       onFinish={handleSubmit}
       okText={getOkButtonText()}
-      cancelText={isViewMode ? undefined : "Huy"}
+      cancelText={isViewMode ? undefined : "Hủy"}
       width={800}
     />
   );
 }
 
 export default ReportFormModal;
+

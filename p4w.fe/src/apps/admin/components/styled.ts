@@ -47,6 +47,23 @@ export const AvatarShell = styled.div`
   flex-shrink: 0;
 `;
 
+export const AvatarButton = styled.button`
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+`;
+
 export const HeaderText = styled.div`
   display: flex;
   flex-direction: column;
@@ -91,8 +108,19 @@ export const StatusTag = styled(Tag)<{ $bg: string; $color: string }>`
 
 export const HeaderAction = styled(Button)`
   background: rgba(255, 255, 255, 0.18) !important;
-  border-color: rgba(255, 255, 255, 0.32) !important;
+  border-color: transparent !important;
   box-shadow: none !important;
+`;
+
+export const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 40px;
+
+  @media (max-width: 768px) {
+    padding-right: 0;
+  }
 `;
 
 export const ModalContent = styled.div`

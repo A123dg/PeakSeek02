@@ -33,7 +33,7 @@ export default function LocationList() {
   return (
     <div style={{ fontSize: 14 }}>
       <PageContainer
-        breadcrumbItems={[{ title: "Danh sach dia diem" }]}
+        breadcrumbItems={[{ title: "Danh sách dia diem" }]}
         showNavButtons={false}
         showBreadcrumb={true}
       >
@@ -41,7 +41,7 @@ export default function LocationList() {
           <ListPageFilters>
             <Input
               prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-              placeholder="Tim theo ten / dia chi..."
+              placeholder="Tìm theo tên / địa chỉ..."
               allowClear
               style={{ width: 260 }}
               onChange={(e) =>
@@ -77,11 +77,11 @@ export default function LocationList() {
               allowClear
               style={{ width: 160 }}
               options={[
-                { value: 1, label: "Cho duyet" },
-                { value: 2, label: "Da duyet" },
-                { value: 3, label: "Tu choi" },
-                { value: 4, label: "Dang hien thi" },
-                { value: 0, label: "Da an" },
+                { value: 1, label: "Chờ duyệt" },
+                { value: 2, label: "Đã duyệt" },
+                { value: 3, label: "Từ chối" },
+                { value: 4, label: "Đang hiển thị" },
+                { value: 0, label: "Đã ẩn" },
               ]}
               onChange={(value) =>
                 setFilter((prev: typeof initialFilter) => ({
@@ -134,3 +134,4 @@ export default function LocationList() {
     </div>
   );
 }
+

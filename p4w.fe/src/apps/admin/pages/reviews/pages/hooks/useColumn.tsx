@@ -10,8 +10,8 @@ type UseReviewColumnsProps = {
 };
 
 const statusMeta: Record<ReviewStatus, { label: string; color: string; bg: string }> = {
-  active: { label: "Dang hien thi", color: "#16a34a", bg: "#ecfdf3" },
-  inactive: { label: "Da an", color: "#6b7280", bg: "#f3f4f6" },
+  active: { label: "Đang hiển thị", color: "#16a34a", bg: "#ecfdf3" },
+  inactive: { label: "Đã ẩn", color: "#6b7280", bg: "#f3f4f6" },
 };
 
 export const useReviewColumns = ({
@@ -20,7 +20,7 @@ export const useReviewColumns = ({
 }: UseReviewColumnsProps) => {
   const columns = [
     {
-      title: "Nguoi dung",
+      title: "Người dùng",
       dataIndex: "user",
       key: "user",
     },
@@ -42,7 +42,7 @@ export const useReviewColumns = ({
       ),
     },
     {
-      title: "Noi dung",
+      title: "Nội dung",
       dataIndex: "content",
       key: "content",
       ellipsis: true,
@@ -97,7 +97,7 @@ export const useReviewColumns = ({
       },
     },
     {
-      title: "Thoi gian tao",
+      title: "Thời gian tạo",
       dataIndex: "createdAt",
       key: "createdAt",
       width: 140,
@@ -135,3 +135,4 @@ export const useReviewColumns = ({
 
   return { columns };
 };
+

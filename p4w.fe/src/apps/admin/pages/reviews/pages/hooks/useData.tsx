@@ -25,7 +25,7 @@ export const useReviewData = (filter?: { page?: number; pageSize?: number }) => 
   const mappedData: ReviewRow[] =
     apiRes?.data?.map((item: any) => ({
       id: item.id,
-      user: item.userName,
+      user: item.userName || "Người dùng đã khóa",
       location: item.locationName,
       rating: item.rating,
       content: item.content,
@@ -43,3 +43,4 @@ export const useReviewData = (filter?: { page?: number; pageSize?: number }) => 
     pageSize: apiRes?.metaData?.pageSize ?? filter?.pageSize ?? 10,
   };
 };
+

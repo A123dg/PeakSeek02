@@ -9,11 +9,11 @@ type UseLocationColumnsProps = {
 };
 
 const statusMeta: Record<LocationStatus, { label: string; color: string; bg: string }> = {
-  pending: { label: "Cho duyet", color: "#f59e0b", bg: "#fffbeb" },
-  approved: { label: "Da duyet", color: "#16a34a", bg: "#ecfdf3" },
-  rejected: { label: "Tu choi", color: "#dc2626", bg: "#fef2f2" },
-  active: { label: "Dang hien thi", color: "#16a34a", bg: "#ecfdf3" },
-  inactive: { label: "Da an", color: "#6b7280", bg: "#f3f4f6" },
+  pending: { label: "Chờ duyệt", color: "#f59e0b", bg: "#fffbeb" },
+  approved: { label: "Đã duyệt", color: "#16a34a", bg: "#ecfdf3" },
+  rejected: { label: "Từ chối", color: "#dc2626", bg: "#fef2f2" },
+  active: { label: "Đang hiển thị", color: "#16a34a", bg: "#ecfdf3" },
+  inactive: { label: "Đã ẩn", color: "#6b7280", bg: "#f3f4f6" },
 };
 
 export const useLocationColumns = ({
@@ -33,7 +33,7 @@ export const useLocationColumns = ({
       width: 140,
     },
     {
-      title: "Dia chi",
+      title: "Địa chỉ",
       dataIndex: "address",
       key: "address",
       ellipsis: true,
@@ -100,7 +100,7 @@ export const useLocationColumns = ({
       render: (_: unknown, record: LocationRow) => (
         <Space size={4}>
           {record.status === "pending" && (
-            <Tooltip title="Duyet dia diem" color="var(--primary)">
+            <Tooltip title="Duyệt địa điểm" color="var(--primary)">
               <Button
                 size="small"
                 type="text"
@@ -127,3 +127,4 @@ export const useLocationColumns = ({
 
   return { columns };
 };
+

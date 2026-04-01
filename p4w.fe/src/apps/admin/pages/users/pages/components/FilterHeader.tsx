@@ -1,24 +1,26 @@
-import useDebounce from "@/shared/hooks/useDebounce";
+﻿import useDebounce from "@/shared/hooks/useDebounce";
 import { SearchOutlined } from "@ant-design/icons";
 import { Input, Select } from "antd";
+import type { ReactNode } from "react";
 import { ListPageFilters, ListPageHeader } from "@/apps/admin/components/listPageHeader";
 
 const ROLE_OPTIONS = [
   { value: "8acea62a-e03e-47b9-89e5-9e4320085d7d", label: "Admin" },
-  { value: "f8d2ee70-5c68-4390-a18e-11943a86142a", label: "Nguoi dung" },
+  { value: "f8d2ee70-5c68-4390-a18e-11943a86142a", label: "Người dùng" },
 ];
 
 const STATUS_OPTIONS = [
-  { value: 1, label: "Hoat dong" },
-  { value: 0, label: "Khong hoat dong" },
+  { value: 1, label: "Hoạt động" },
+  { value: 0, label: "Không hoạt động" },
   { value: 3, label: "Khoa" },
 ];
 
 interface FilterHeaderProps {
   setFilter: (filter: any) => void;
+  extraAction?: ReactNode;
 }
 
-export const FilterHeader = ({ setFilter }: FilterHeaderProps) => {
+export const FilterHeader = ({ setFilter, extraAction }: FilterHeaderProps) => {
   const debounce = useDebounce();
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,7 +39,7 @@ export const FilterHeader = ({ setFilter }: FilterHeaderProps) => {
       <ListPageFilters>
         <Input
           prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-          placeholder="Tim theo ten / email..."
+          placeholder="Tìm theo tên / email..."
           allowClear
           style={{ width: 260 }}
           onChange={handleTextChange}
@@ -69,6 +71,9 @@ export const FilterHeader = ({ setFilter }: FilterHeaderProps) => {
           }
         />
       </ListPageFilters>
+
+      {extraAction}
     </ListPageHeader>
   );
 };
+

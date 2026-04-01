@@ -1,4 +1,4 @@
-import { DownloadOutlined, FilterOutlined, SearchOutlined } from "@ant-design/icons";
+﻿import { DownloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { Button, Input, Select } from "antd";
 
 import { ListPageFilters, ListPageHeader } from "@apps/admin/components/listPageHeader";
@@ -32,7 +32,7 @@ export default function ReviewList() {
   return (
     <div style={{ fontSize: 14 }}>
       <PageContainer
-        breadcrumbItems={[{ title: "Danh sach danh gia" }]}
+        breadcrumbItems={[{ title: "Danh sách danh gia" }]}
         showNavButtons={false}
         showBreadcrumb={true}
       >
@@ -40,7 +40,7 @@ export default function ReviewList() {
           <ListPageFilters>
             <Input
               prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-              placeholder="Tim theo noi dung / nguoi dung..."
+              placeholder="Tìm theo nội dung / người dùng..."
               allowClear
               style={{ width: 260 }}
               onChange={(e) =>
@@ -73,8 +73,8 @@ export default function ReviewList() {
               allowClear
               style={{ width: 160 }}
               options={[
-                { value: 1, label: "Dang hien thi" },
-                { value: 0, label: "Da an" },
+                { value: 1, label: "Đang hiển thị" },
+                { value: 0, label: "Đã ẩn" },
               ]}
               onChange={(value) =>
                 setFilter((prev: typeof initialFilter) => ({
@@ -84,7 +84,6 @@ export default function ReviewList() {
                 }))
               }
             />
-            <Button icon={<FilterOutlined />} />
           </ListPageFilters>
 
           <Button
@@ -92,7 +91,7 @@ export default function ReviewList() {
             icon={<DownloadOutlined />}
             style={{ backgroundColor: "#8c80cc", borderColor: "#8c80cc", height: 36 }}
           >
-            Xuat bao cao
+            Xuất báo cáo
           </Button>
         </ListPageHeader>
 
@@ -118,3 +117,4 @@ export default function ReviewList() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { message } from "antd";
 
 import type { ReviewFormData } from "../../ReviewFormModal";
@@ -35,7 +35,7 @@ export const useReviewActions = () => {
         },
       });
 
-      message.success("Cap nhat danh gia thanh cong");
+      message.success("Cập nhật danh gia thanh cong");
       handleModalCancel();
     } catch {
       message.error("Co loi xay ra");
@@ -45,7 +45,7 @@ export const useReviewActions = () => {
   const handleHideReview = async (record: ReviewRow) => {
     try {
       await hideReview(record.id);
-      message.success("An danh gia thanh cong");
+      message.success("Ẩn đánh giá thành công");
     } catch {
       message.error("Co loi xay ra");
     }
@@ -61,3 +61,4 @@ export const useReviewActions = () => {
     handleHideReview,
   };
 };
+

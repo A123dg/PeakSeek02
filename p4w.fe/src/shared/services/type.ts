@@ -77,4 +77,5 @@ export interface IUpdateProfileRequest {
   email: string;
   dateOfBirth?: string;
   password?: string;
+  mediaLinkUrl?: string;
 }

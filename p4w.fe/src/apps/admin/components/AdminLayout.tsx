@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Outlet, Link } from '@tanstack/react-router';
 import { Avatar, Dropdown } from 'antd';
 import {
+  CommentOutlined,
   DownOutlined,
   EnvironmentOutlined,
   FileSearchOutlined,
@@ -14,6 +15,7 @@ import {
 import styled, { css } from 'styled-components';
 import {
   ADMIN_BASE_ROUTE,
+  ADMIN_COMMENTS_ROUTE,
   ADMIN_LOCATIONS_ROUTE,
   ADMIN_REPORTS_ROUTE,
   ADMIN_REVIEWS_ROUTE,
@@ -37,13 +39,18 @@ type AdminHeaderUser = {
 const navigationItems = [
   {
     to: ADMIN_BASE_ROUTE,
-    label: 'Tong quan',
+    label: 'Tổng quan',
     icon: HomeOutlined,
   },
   {
     to: ADMIN_REVIEWS_ROUTE,
     label: 'Đánh giá',
     icon: MessageOutlined,
+  },
+  {
+    to: ADMIN_COMMENTS_ROUTE,
+    label: 'Bình luận',
+    icon: CommentOutlined,
   },
   {
     to: ADMIN_LOCATIONS_ROUTE,
@@ -611,10 +618,10 @@ export default function AdminLayout({ title, subtitle }: AdminLayoutProps) {
 
       <DropdownActions>
         <DropdownActionButton type="button" onClick={handleOpenProfileModal}>
-          Thong tin ca nhan
+          Thông tin cá nhân
         </DropdownActionButton>
         <DropdownActionButton type="button" onClick={handleLogout}>
-          Dang xuat
+          Đăng xuất
         </DropdownActionButton>
       </DropdownActions>
     </DropdownPanel>
@@ -748,3 +755,4 @@ export default function AdminLayout({ title, subtitle }: AdminLayoutProps) {
     </LayoutWrapper>
   );
 }
+

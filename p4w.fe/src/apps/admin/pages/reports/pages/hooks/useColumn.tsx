@@ -11,13 +11,13 @@ type UseReportColumnsProps = {
 };
 
 const statusMeta: Record<ReportStatus, { label: string; color: string; bg: string }> = {
-  pending: { label: "Cho duyet", color: "#f59e0b", bg: "#fffbeb" },
-  approved: { label: "Da duyet", color: "#16a34a", bg: "#ecfdf3" },
-  rejected: { label: "Tu choi", color: "#dc2626", bg: "#fef2f2" },
+  pending: { label: "Chờ duyệt", color: "#f59e0b", bg: "#fffbeb" },
+  approved: { label: "Đã duyệt", color: "#16a34a", bg: "#ecfdf3" },
+  rejected: { label: "Từ chối", color: "#dc2626", bg: "#fef2f2" },
 };
 
 const reportTypeMeta: Record<ReportType, string> = {
-  user: "Nguoi dung",
+  user: "Người dùng",
   location: "Dia diem",
   review: "Danh gia",
   comment: "Binh luan",
@@ -30,20 +30,20 @@ export const useReportColumns = ({
 }: UseReportColumnsProps) => {
   const columns = [
     {
-      title: "Nguoi bao cao",
+      title: "Người báo cáo",
       dataIndex: "reportedBy",
       key: "reportedBy",
       width: 140,
     },
     {
-      title: "Loai bao cao",
+      title: "Loại báo cáo",
       dataIndex: "reportedItemType",
       key: "reportedItemType",
       width: 120,
       render: (type: ReportType) => reportTypeMeta[type] || type,
     },
     {
-      title: "Muc bao cao",
+      title: "Mục báo cáo",
       dataIndex: "reportedItem",
       key: "reportedItem",
       ellipsis: true,
@@ -56,7 +56,7 @@ export const useReportColumns = ({
       width: 160,
     },
     {
-      title: "Ngay tao",
+      title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
       width: 140,
@@ -100,7 +100,7 @@ export const useReportColumns = ({
                 onClick={() => handleOpenViewModal(record)}
               />
             </Tooltip>
-            <Tooltip title="Duyet" color="var(--primary)">
+            <Tooltip title="Duyệt" color="var(--primary)">
               <Button
                 size="small"
                 type="text"
@@ -110,7 +110,7 @@ export const useReportColumns = ({
                 onClick={() => handleOpenApproveModal(record)}
               />
             </Tooltip>
-            <Tooltip title="Tu choi" color="var(--primary)">
+            <Tooltip title="Từ chối" color="var(--primary)">
               <Button
                 size="small"
                 type="text"
@@ -137,3 +137,4 @@ export const useReportColumns = ({
 
   return { columns };
 };
+
